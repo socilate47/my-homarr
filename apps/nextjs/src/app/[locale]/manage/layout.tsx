@@ -25,6 +25,7 @@ import {
   IconUserFilled,
   IconUsers,
   IconUsersGroup,
+  IconRadar,
 } from "@tabler/icons-react";
 
 import { getRscUserSettingsAsync } from "@homarr/api/user-server";
@@ -163,6 +164,12 @@ export default async function ManageLayout({ children }: PropsWithChildren) {
           label: t("items.tools.items.api"),
           icon: IconDirectionsFilled,
           href: "/manage/tools/api",
+          hidden: !session?.user.permissions.includes("admin"),
+        },
+        {
+          label: "Discovery",
+          icon: IconRadar,
+          href: "/manage/discovery",
           hidden: !session?.user.permissions.includes("admin"),
         },
         {
