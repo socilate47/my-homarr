@@ -47,8 +47,20 @@ if [[ -n "${HOMARR_AGENT_BINARY_URL:-}" ]]; then
 elif [[ -x "$(dirname "$0")/homarr-discovery-agent" ]]; then
   install -m 0755 "$(dirname "$0")/homarr-discovery-agent" /usr/local/bin/homarr-discovery-agent
 else
-  echo "Set HOMARR_AGENT_BINARY_URL to a published Linux binary or place a compiled binary beside this script." >&2
-  exit 1
+  arch="$(uname -m)"
+  case "$arch" in
+    x86_64) asset="homarr-discovery-agent-linux-amd64" ;;
+    aarch64|arm64) asset="homarr-discovery-agent-linux-arm64" ;;
+    *)
+      echo "Unsupported Linux architecture: $arch" >&2
+      exit 1
+      ;;
+  esac
+  release_url="${HOMARR_AGENT_RELEASE_URL:-https://github.com/socilate47/setting-up-my-homelab/releases/latest/download/$asset}"
+  echo "Downloading discovery agent for $arch..."
+  curl --fail --silent --show-error --location "$release_url" \
+    --output /usr/local/bin/homarr-discovery-agent
+  chmod 0755 /usr/local/bin/homarr-discovery-agent
 fi
 
 cat > /etc/homarr-discovery-agent/agent.env <<EOF

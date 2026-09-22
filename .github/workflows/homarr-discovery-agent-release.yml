@@ -1,0 +1,31 @@
+name: Build discovery agent
+
+on:
+  push:
+    tags:
+      - "discovery-agent-v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+      - name: Build binaries
+        working-directory: tools/homarr-discovery-agent
+        run: |
+          mkdir -p dist
+          GOOS=linux GOARCH=amd64 go build -trimpath -ldflags="-s -w" -o dist/homarr-discovery-agent-linux-amd64 .
+          GOOS=linux GOARCH=arm64 go build -trimpath -ldflags="-s -w" -o dist/homarr-discovery-agent-linux-arm64 .
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            tools/homarr-discovery-agent/dist/homarr-discovery-agent-linux-amd64
+            tools/homarr-discovery-agent/dist/homarr-discovery-agent-linux-arm64
+          generate_release_notes: true
