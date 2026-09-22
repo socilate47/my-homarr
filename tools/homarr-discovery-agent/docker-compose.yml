@@ -1,0 +1,15 @@
+services:
+  homarr-discovery-agent:
+    build: .
+    restart: unless-stopped
+    pid: host
+    environment:
+      HOMARR_URL: http://192.168.0.107:3000
+      HOMARR_DISCOVERY_TOKEN: replace-me
+      DISCOVERY_RESOURCE_ID: qemu/100
+      DISCOVERY_NAME: media-server
+      DISCOVERY_TYPE: qemu
+      DISCOVERY_INTERVAL: 60s
+    network_mode: host
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro

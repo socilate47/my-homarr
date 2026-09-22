@@ -9,9 +9,45 @@ export const defaultServerSettingsKeys = [
   "appearance",
   "culture",
   "search",
+  "discovery",
 ] as const;
 
-export type ServerSettingsRecord = Record<(typeof defaultServerSettingsKeys)[number], Record<string, unknown>>;
+export interface DiscoveryService {
+  id: string;
+  name: string;
+  url: string;
+  port: number | null;
+  protocol: "http" | "https";
+  icon: string | null;
+  group: string | null;
+  source: "agent" | "proxmox";
+  online: boolean;
+  lastSeenAt: string;
+}
+
+export interface DiscoveryResource {
+  id: string;
+  name: string;
+  type: "qemu" | "lxc";
+  node: string;
+  status: string;
+  ipAddresses: string[];
+  services: DiscoveryService[];
+  lastSeenAt: string;
+}
+
+export interface DiscoverySettings {
+  enabled: boolean;
+  agentToken: string | null;
+  proxmoxIntegrationId: string | null;
+  resources: DiscoveryResource[];
+}
+
+export type ServerSettingsRecord = {
+  [K in Exclude<(typeof defaultServerSettingsKeys)[number], "discovery">]: Record<string, unknown>;
+} & {
+  discovery: DiscoverySettings;
+};
 
 export const defaultServerSettings = {
   analytics: {
@@ -41,6 +77,12 @@ export const defaultServerSettings = {
   },
   search: {
     defaultSearchEngineId: null as string | null,
+  },
+  discovery: {
+    enabled: false,
+    agentToken: null as string | null,
+    proxmoxIntegrationId: null as string | null,
+    resources: [] as DiscoveryResource[],
   },
 } satisfies ServerSettingsRecord;
 

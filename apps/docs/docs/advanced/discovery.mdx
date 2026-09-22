@@ -1,0 +1,36 @@
+---
+id: discovery
+title: Homelab discovery
+sidebar_label: Homelab discovery
+---
+
+Homarr can keep a small inventory of homelab machines and services.
+
+## Proxmox inventory
+
+Create a Proxmox integration, then open **Manage → Discovery**, enable discovery, select the Proxmox integration, and choose **Sync Proxmox**. Homarr records QEMU virtual machines and LXC containers using their Proxmox resource IDs, names, nodes, and statuses.
+
+## VM agent
+
+The optional agent reports the IP addresses and listening TCP ports inside a VM. Build or run it from `tools/homarr-discovery-agent` and set:
+
+```bash
+HOMARR_URL=https://homarr.example.com
+HOMARR_DISCOVERY_TOKEN=the-token-from-homarr
+DISCOVERY_RESOURCE_ID=qemu/100
+DISCOVERY_NAME=media-server
+DISCOVERY_TYPE=qemu
+DISCOVERY_INTERVAL=60s
+```
+
+The agent should be installed only on machines you own and administer. It reports to Homarr over HTTPS and should use a token with limited exposure; rotate the token from the Discovery page if necessary.
+
+The first implementation intentionally does not scan entire network ranges. Install the agent in each VM where application discovery is needed. This avoids false positives and prevents accidental scanning of unrelated networks.
+
+### Docker
+
+The agent includes a Dockerfile and Compose example in `tools/homarr-discovery-agent`. It uses host networking so reported service ports match the VM's reachable ports and reads `/proc/net/tcp` to find listening services.
+
+### Proxmox LXC
+
+For an LXC container, either install the agent directly in the container or run the agent on the Proxmox host with the container's resource ID. Proxmox synchronization remains the source of truth for container existence and lifecycle state.
