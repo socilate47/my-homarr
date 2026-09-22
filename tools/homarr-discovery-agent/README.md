@@ -44,4 +44,10 @@ sudo HOMARR_AGENT_BINARY_URL=/path/to/homarr-discovery-agent \
   bash install-agent.sh
 ```
 
-This is a one-command installer, not an APT repository yet. An APT repository can be added once the Homarr server and release hosting location are fixed.
+The installer downloads the matching binary from the latest GitHub release automatically. APT packaging can be added later if needed.
+
+After the release workflow has run, the one-command installation is:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/socilate47/setting-up-my-homelab/homarr-discovery/tools/homarr-discovery-agent/install-agent.sh | sudo bash
+```
