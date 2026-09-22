@@ -12,8 +12,8 @@ RUN apk add --no-cache libc6-compat curl bash python3 make g++
 RUN corepack enable pnpm
 COPY .npmrc pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY patches ./patches
-COPY --parents ./apps/*/package.json ./packages/*/package.json ./tooling/*/package.json ./
 # @homarr/definitions generates documentation types during install.
+COPY --parents ./apps/*/package.json ./packages/*/package.json ./tooling/*/package.json ./
 COPY --parents ./packages/definitions/src ./
 # Workaround for pnpm/pnpm#5268: pnpm fetch crashes when patchedDependencies
 # are configured with nodeLinker: hoisted. The applyPatchToDir function tries
