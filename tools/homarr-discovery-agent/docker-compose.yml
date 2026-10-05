@@ -4,12 +4,12 @@ services:
     restart: unless-stopped
     pid: host
     environment:
-      HOMARR_URL: http://192.168.0.107:3000
-      HOMARR_DISCOVERY_TOKEN: replace-me
-      DISCOVERY_RESOURCE_ID: qemu/100
-      DISCOVERY_NAME: media-server
-      DISCOVERY_TYPE: qemu
-      DISCOVERY_INTERVAL: 60s
+      HOMARR_URL: ${HOMARR_URL:?set HOMARR_URL in .env}
+      HOMARR_DISCOVERY_TOKEN: ${HOMARR_DISCOVERY_TOKEN:?set HOMARR_DISCOVERY_TOKEN in .env}
+      DISCOVERY_RESOURCE_ID: ${DISCOVERY_RESOURCE_ID:?set DISCOVERY_RESOURCE_ID in .env}
+      DISCOVERY_NAME: ${DISCOVERY_NAME:?set DISCOVERY_NAME in .env}
+      DISCOVERY_TYPE: ${DISCOVERY_TYPE:-qemu}
+      DISCOVERY_INTERVAL: ${DISCOVERY_INTERVAL:-60s}
     network_mode: host
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
