@@ -14,7 +14,10 @@ prompt_value() {
   if [[ -n "${!name:-}" ]]; then
     return
   fi
-  if [[ -n "$default" ]]; then
+  if [[ ! -t 0 ]]; then
+    echo "$name is required for non-interactive installation; set it in the environment" >&2
+    exit 1
+  elif [[ -n "$default" ]]; then
     read -r -p "$prompt [$default]: " value
     value="${value:-$default}"
   else
@@ -27,7 +30,7 @@ prompt_value() {
   printf -v "$name" '%s' "$value"
 }
 
-prompt_value HOMARR_URL "Homarr URL" "http://192.168.70.116:3000"
+prompt_value HOMARR_URL "Homarr URL"
 prompt_value HOMARR_DISCOVERY_TOKEN "Homarr discovery token"
 prompt_value DISCOVERY_RESOURCE_ID "Proxmox resource ID (for example qemu/101)"
 prompt_value DISCOVERY_NAME "VM name"
