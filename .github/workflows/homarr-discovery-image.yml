@@ -39,7 +39,7 @@ jobs:
         env:
           CI: "true"
           NODE_ENV: development
-        run: pnpm exec vitest run packages/db/test/discovery/discovery.spec.ts packages/api/src/router/test/discovery.spec.ts packages/validation/src/test/media.spec.ts apps/nextjs/src/app/api/discovery-agent/route.spec.ts
+        run: pnpm exec vitest run packages/definitions/src/test/docs-codegen.spec.ts packages/db/test/discovery/discovery.spec.ts packages/api/src/router/test/discovery.spec.ts packages/validation/src/test/media.spec.ts apps/nextjs/src/app/api/discovery-agent/route.spec.ts
 
   build:
     needs: verify

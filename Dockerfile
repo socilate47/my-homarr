@@ -50,7 +50,7 @@ ARG DISABLE_REDIS_LOGS='true'
 ARG TARGETPLATFORM
 
 RUN pnpm exec turbo typecheck --filter=@homarr/nextjs --filter=@homarr/api --filter=@homarr/cron-jobs --filter=@homarr/db --filter=@homarr/server-settings --filter=@homarr/validation --filter=@homarr/forms-collection --filter=@homarr/icons && \
-    CI=true NODE_ENV=development pnpm exec vitest run packages/db/test/discovery/discovery.spec.ts packages/api/src/router/test/discovery.spec.ts packages/validation/src/test/media.spec.ts apps/nextjs/src/app/api/discovery-agent/route.spec.ts
+    CI=true NODE_ENV=development pnpm exec vitest run packages/definitions/src/test/docs-codegen.spec.ts packages/db/test/discovery/discovery.spec.ts packages/api/src/router/test/discovery.spec.ts packages/validation/src/test/media.spec.ts apps/nextjs/src/app/api/discovery-agent/route.spec.ts
 
 RUN --mount=type=secret,id=TURBO_API,env=TURBO_API \
     --mount=type=secret,id=TURBO_TEAM,env=TURBO_TEAM \
