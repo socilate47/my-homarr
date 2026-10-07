@@ -62,7 +62,7 @@ const prepareTilesAsync = async (db: Database, state: DiscoverySettings): Promis
         }
         if (itemIds.has(mapping.itemId) && app) { mapping.restoreRequested = false; continue; }
       }
-      if (!service.online || !isDiscoveryAgentOnline(resource) || resource.status !== "running") continue;
+      if (!mapping?.restoreRequested && (!service.online || !isDiscoveryAgentOnline(resource) || resource.status !== "running")) continue;
       const appId = mapping?.appId ?? createId();
       const itemId = mapping?.itemId ?? createId();
       if (!app) {

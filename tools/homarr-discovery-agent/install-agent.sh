@@ -94,6 +94,7 @@ write_env() {
   write_env DISCOVERY_TYPE "$DISCOVERY_TYPE"
   write_env DISCOVERY_INTERVAL "${DISCOVERY_INTERVAL:-60s}"
   write_env DISCOVERY_ADDRESS "${DISCOVERY_ADDRESS:-}"
+  write_env DISCOVERY_WEB_SERVICES "${DISCOVERY_WEB_SERVICES:-}"
 } > /etc/homarr-discovery-agent/agent.env
 chmod 0600 /etc/homarr-discovery-agent/agent.env
 

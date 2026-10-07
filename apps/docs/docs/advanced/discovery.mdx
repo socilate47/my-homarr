@@ -54,7 +54,15 @@ Use `homarr.discovery.enable=false` to exclude a container. Names inferred from 
 
 New reported web services become app tiles on the chosen board. Different ports on the same IP become separate links. Repeated reports do not create duplicate tiles, and IP changes update URLs still managed by discovery.
 
-You can edit the app name, upload an icon through the existing icon picker, and move the tile. Reports preserve these choices. If you manually change an app URL, discovery keeps that override. Removed tiles stay removed; use **Restore tile** in Discovery to add them again. Missing or offline guests retain their inventory and existing tiles.
+For a web app running directly on Linux on a custom port, configure the agent with `DISCOVERY_WEB_SERVICES`, for example:
+
+```bash
+DISCOVERY_WEB_SERVICES='[{"name":"My frontend","port":5173,"protocol":"http"}]'
+```
+
+Pass this JSON value to the installer. The agent detects the address and reports the declared service only when the port is listening on a non-loopback interface. Entries require a name and valid port, with protocol `http` or `https`; omitted protocol defaults to `http`. Duplicate port declarations are rejected.
+
+You can edit the app name, upload an icon through the existing icon picker, and move the tile. Reports preserve these choices. If you manually change an app URL, discovery keeps that override. Removed tiles stay removed; use **Restore tile** in Discovery to add them again, including when the guest is offline. Missing or offline guests retain their inventory and existing tiles.
 
 Changing the destination board keeps existing tiles on the previous board. Use **Restore tile** for an existing service to add it to the new destination; future new services appear automatically there. Disabling discovery stops synchronization and rejects agent updates without deleting apps or tiles.
 
