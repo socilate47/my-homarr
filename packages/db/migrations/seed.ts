@@ -226,7 +226,8 @@ const seedDefaultSearchEnginesAsync = async (db: Database) => {
       iconUrl: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/homarr.svg",
       short: "docs",
       description: "Search the Homarr documentation",
-      urlTemplate: createDocumentationLink("/search", undefined, { q: "%s" }),
+      // The search engine substitutes this placeholder; URLSearchParams would encode it as %25s.
+      urlTemplate: `${createDocumentationLink("/search")}?q=%s`,
       type: "generic" as const,
       integrationId: null,
     },

@@ -6,6 +6,7 @@ import { z } from "zod/v4";
 
 import { createDocumentationLink } from "./index";
 import { integrationDocSlugs } from "./integration-doc-slugs";
+import { createSitemapPathType } from "./sitemap-path-type";
 import { widgetDocSlugs } from "./widget-doc-slugs";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -43,10 +44,6 @@ const parseXml = (sitemapXml: string) => {
 
 const mapSitemapXmlToPaths = (sitemapData: z.infer<typeof sitemapSchema>) => {
   return sitemapData.urlset.url.map((url) => removeCommonUrl(url.loc));
-};
-
-const createSitemapPathType = (paths: string[]) => {
-  return "export type HomarrDocumentationPath =\n" + paths.map((path) => `  | "${path.replace(/\/$/, "")}"`).join("\n");
 };
 
 const updateSitemapTypeFileAsync = async (sitemapPathType: string) => {
@@ -89,7 +86,6 @@ const main = async () => {
     paths = [];
   }
 
-  paths.push("/sitemap.xml");
   for (const p of slugMapPaths) {
     if (!paths.includes(p)) {
       paths.push(p);

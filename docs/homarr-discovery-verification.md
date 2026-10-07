@@ -26,10 +26,11 @@
 - The UI static auditor reports 87 findings across the existing monorepo. The finding in the changed discovery page treats Mantine's imported `Select` as a native HTML select; the canonical owner is documented in DESIGN.md. The audit is not a runtime accessibility check.
 - An independent review identified address binding, endpoint identity and deleted-app restoration defects; fixes and regression coverage were added. That review stopped at a usage limit before a final verdict. Remaining review was performed by the author.
 - A follow-up packaging review found the exported-encryption-key override defect. It was corrected and covered by a passing setup test. The reviewer found no other concrete packaging defect and explicitly did not judge unavailable runtime checks.
+- GitHub run `37669443948` reached TypeScript checks and failed in database seeding because postinstall sitemap generation omitted `/search`. The generator now retains non-indexed search/sitemap routes, with regression tests added to CI. Its missing-route behavior was reproduced and the fixed generator body checked in JavaScript; the complete TypeScript/Vitest run still needs a new CI run.
 
 ## Delivery and setup
 
-Push only to `https://github.com/socilate47/my-homarr.git`, branch `homarr-discovery`. The local `my-homarr` remote points there. GitHub DNS resolution currently fails, so no push has succeeded.
+Push only to `https://github.com/socilate47/my-homarr.git`, branch `homarr-discovery`. The user pushed the deployment package successfully from their normal terminal; this branch now tracks that remote. The assistant's execution environment still cannot resolve GitHub, so subsequent fixes need pushing from that normal terminal.
 
 When connectivity is restored:
 
