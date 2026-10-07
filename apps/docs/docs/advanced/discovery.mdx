@@ -17,7 +17,7 @@ The **Proxmox discovery** background task refreshes inventory every minute by de
 
 ## Install the guest agent
 
-Build the Linux binaries from `tools/homarr-discovery-agent` with `build-release.sh`, or publish a discovery-agent release using this fork's release workflow. The installation command on the Discovery page downloads the binary from the latest release of `socilate47/my-homarr`; that release must contain the matching agent binary first.
+The Homarr image built from this checkout includes the installer and Linux amd64/arm64 binaries. They are served from `/api/discovery-agent/`, so no GitHub release is needed. For local Node development, run `bash tools/homarr-discovery-agent/prepare-homarr-assets.sh` before starting Homarr.
 
 On the Discovery page, choose **Show install command** for a guest. The command contains the guest's resource ID, name, Homarr URL and enrollment token. Run it **inside that VM or LXC container**. If the displayed browser URL is not reachable from the guest, replace it with your internal Homarr URL.
 
@@ -32,6 +32,8 @@ sudo HOMARR_URL=https://homarr.example.com \
 ```
 
 The installer creates `/etc/homarr-discovery-agent/agent.env`, installs a systemd unit and enables it at boot. The directory and token file are restricted to root. Non-interactive installation requires environment values; interactive installation prompts for missing values. The default resource type is `qemu`; set `DISCOVERY_TYPE=lxc` for a container.
+
+The Docker image sets `HOMARR_DISCOVERY_ASSET_DIR=/app/discovery-agent` for its included downloads. A native server can override this directory with `HOMARR_DISCOVERY_ASSET_DIR`; otherwise Homarr reads `public/discovery-agent` relative to its working directory. Download routes only serve the installer, the two supported binaries and `SHA256SUMS`.
 
 The agent detects its IP addresses automatically and reports every 60 seconds by default. Set `DISCOVERY_ADDRESS` to one of the guest's addresses when it has multiple LAN interfaces. Set `DISCOVERY_INTERVAL` to change the reporting interval, from `10s` to `24h`.
 

@@ -18,7 +18,7 @@ When Docker is installed, the agent reads running container metadata and all pub
 
 ```yaml
 labels:
-    homarr.discovery.enable: "true"
+  homarr.discovery.enable: "true"
   homarr.discovery.name: "Grafana"
   homarr.discovery.icon: "grafana"
   homarr.discovery.group: "Monitoring"
@@ -39,13 +39,14 @@ Pass this variable to the installer or set it in the agent environment. Each ent
 
 ## Automatic Linux installation
 
-Build a release binary with `build-release.sh`, host the installer and matching binary on an internal HTTPS URL, then run this on each Debian or Ubuntu VM. The installer prompts when run interactively. For piped or other non-interactive use, provide all configuration values in the environment:
+The Homarr Docker image includes the installer and Linux amd64/arm64 binaries at `/api/discovery-agent/`. Use **Show install command** on the Discovery page to get the command for each guest. For local Node development, run `prepare-homarr-assets.sh` first to build the downloads. No GitHub release is needed.
+
+The installer prompts when run interactively. For piped or other non-interactive use, provide all configuration values in the environment:
 
 ```bash
-curl -fsSL https://YOUR-HOMARR-HOST/agent/install-agent.sh -o /tmp/install-homarr-agent.sh
+curl -fsSL https://YOUR-HOMARR-HOST/api/discovery-agent/install-agent.sh -o /tmp/install-homarr-agent.sh
 sudo HOMARR_URL=https://homarr.example.com HOMARR_DISCOVERY_TOKEN=your-token \
   DISCOVERY_RESOURCE_ID=qemu/100 DISCOVERY_NAME=media-server \
-  HOMARR_AGENT_BINARY_URL=https://YOUR-HOMARR-HOST/agent/homarr-discovery-agent-linux-amd64 \
   bash /tmp/install-homarr-agent.sh
 ```
 
@@ -58,12 +59,13 @@ sudo HOMARR_AGENT_BINARY_URL=/path/to/homarr-discovery-agent \
   bash install-agent.sh
 ```
 
-When no binary URL or local binary is provided, the installer downloads the matching binary from the latest GitHub release automatically. APT packaging can be added later if needed.
+When no binary URL or local binary is provided, the installer downloads the matching binary from the configured Homarr URL. `HOMARR_AGENT_RELEASE_URL` can override the download URL if you host a binary elsewhere.
 
-After the release workflow has run, a non-interactive one-command install includes your Homarr URL, token and guest identity:
+A non-interactive install uses your Homarr URL, token and guest identity:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/YOUR-ORG/YOUR-REPO/RELEASE/tools/homarr-discovery-agent/install-agent.sh | \
-  sudo HOMARR_URL=https://homarr.example.com HOMARR_DISCOVERY_TOKEN=your-token \
-  DISCOVERY_RESOURCE_ID=qemu/100 DISCOVERY_NAME=media-server bash
+curl -fsSL https://homarr.example.com/api/discovery-agent/install-agent.sh -o /tmp/install-homarr-agent.sh
+sudo HOMARR_URL=https://homarr.example.com HOMARR_DISCOVERY_TOKEN=your-token \
+  DISCOVERY_RESOURCE_ID=qemu/100 DISCOVERY_NAME=media-server \
+  bash /tmp/install-homarr-agent.sh
 ```

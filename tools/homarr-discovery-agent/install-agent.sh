@@ -69,7 +69,7 @@ else
       exit 1
       ;;
   esac
-  release_url="${HOMARR_AGENT_RELEASE_URL:-https://github.com/socilate47/my-homarr/releases/latest/download/$asset}"
+  release_url="${HOMARR_AGENT_RELEASE_URL:-${HOMARR_URL%/}/api/discovery-agent/$asset}"
   echo "Downloading discovery agent for $arch..."
   curl --fail --silent --show-error --location "$release_url" \
     --output /usr/local/bin/homarr-discovery-agent

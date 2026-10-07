@@ -6593,7 +6593,7 @@
     "offline": "Offline",
     "noAddress": "No address reported yet",
     "install": "Show install command",
-    "installHelp": "Run this command inside this guest. The command uses this Homarr address; change it if the guest needs a different reachable address. A built agent release must be available first.",
+    "installHelp": "Run this command inside this guest. The installer and binary come from your Homarr instance. Change the Homarr address if the guest needs a different reachable address.",
     "copy": "Copy command",
     "copied": "Copied",
     "restore": "Restore tile",

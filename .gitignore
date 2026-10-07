@@ -66,6 +66,7 @@ e2e/shared/tmp
 
 #personal backgrounds
 apps/nextjs/public/images/background.png
+apps/nextjs/public/discovery-agent/
 
 
 
