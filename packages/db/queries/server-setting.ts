@@ -35,7 +35,7 @@ export const getServerSettingByKeyAsync = async <TKey extends keyof ServerSettin
     return defaultServerSettings[key];
   }
 
-  return SuperJSON.parse<ServerSettings[TKey]>(dbSettings.value);
+  return { ...defaultServerSettings[key], ...SuperJSON.parse<ServerSettings[TKey]>(dbSettings.value) };
 };
 
 export const updateServerSettingByKeyAsync = async <TKey extends keyof ServerSettings>(

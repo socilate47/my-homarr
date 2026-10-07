@@ -115,14 +115,14 @@ const Row = async ({ media }: RowProps) => {
   return (
     <TableTr>
       <TableTd w={64}>
-        <Image
+        {media.contentType.startsWith("video/") ? <video src={createLocalImageUrl(media.id)} muted playsInline preload="metadata" aria-label={media.name} style={{ width: 64, height: 64, objectFit: "contain" }} /> : <Image
           // Switched to mantine image because next/image doesn't support svgs
           src={createLocalImageUrl(media.id)}
           alt={media.name}
           w={64}
           h={64}
           fit="contain"
-        />
+        />}
       </TableTd>
       <TableTd>{media.name}</TableTd>
       <TableTd>{formatBytes(media.size)}</TableTd>

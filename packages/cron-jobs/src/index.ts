@@ -1,6 +1,7 @@
 import { analyticsJob } from "./jobs/analytics";
 import { iconsUpdaterJob } from "./jobs/icons-updater";
 import { pingJob } from "./jobs/ping";
+import { proxmoxDiscoveryJob } from "./jobs/proxmox-discovery";
 import { createCronJobGroup } from "./lib";
 
 const getJobGroup = () => {
@@ -8,6 +9,7 @@ const getJobGroup = () => {
     analytics: analyticsJob,
     iconsUpdater: iconsUpdaterJob,
     ping: pingJob,
+    proxmoxDiscovery: proxmoxDiscoveryJob,
   });
 };
 

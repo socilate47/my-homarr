@@ -15,6 +15,7 @@ import { useI18n } from "@homarr/translation/client";
 import type { SelectItemWithDescriptionBadge } from "@homarr/ui";
 import { SelectWithDescriptionBadge } from "@homarr/ui";
 
+import { useBackgroundMediaType } from "~/components/layout/background";
 import { SectionCard } from "~/components/manage/section-card";
 import type { FormValues } from "./_settings-form";
 
@@ -33,7 +34,7 @@ export const BackgroundSettingsContent = ({ form }: Props) => {
     includeFromAllUsers: true,
     search: debouncedSearch ?? "",
   });
-  const images = medias.data?.items.filter((media) => media.contentType.startsWith("image/")) ?? [];
+  const images = medias.data?.items.filter((media) => media.contentType.startsWith("image/") || media.contentType.startsWith("video/")) ?? [];
   const imageMap = new Map(images.map((image) => [`/api/user-medias/${image.id}`, image]));
 
   const backgroundImageAttachmentData = useBackgroundOptionData(
@@ -68,6 +69,7 @@ export const BackgroundSettingsContent = ({ form }: Props) => {
               // We filter it on the server
               filter={({ options }) => options}
               label={t("board.field.backgroundImageUrl.label")}
+              description={t("wallpaper.formats")}
               placeholder={`${t("board.field.backgroundImageUrl.placeholder")}...`}
               renderOption={({ option }) => {
                 const current = imageMap.get(option.value);
@@ -103,6 +105,7 @@ export const BackgroundSettingsContent = ({ form }: Props) => {
             />
             {session?.user.permissions.includes("media-upload") && (
               <UploadMedia
+                purpose="background"
                 onSuccess={(uploadedMedias) => {
                   const first = uploadedMedias.at(0);
                   if (!first) return;
@@ -113,7 +116,7 @@ export const BackgroundSettingsContent = ({ form }: Props) => {
                 }}
               >
                 {({ onClick, loading }) => (
-                  <ActionIcon onClick={onClick} loading={loading} mt={24} size={36} variant="default">
+                  <ActionIcon aria-label={t("wallpaper.upload")} onClick={onClick} loading={loading} mt={24} size={36} variant="default">
                     <IconUpload size={16} stroke={1.5} />
                   </ActionIcon>
                 )}
@@ -154,12 +157,16 @@ interface ImagePreviewProps {
 }
 
 const ImagePreview = ({ src, w, h }: ImagePreviewProps) => {
+  const contentType = useBackgroundMediaType(src);
+  const t = useI18n();
   if (!["/", "http://", "https://"].some((prefix) => src.startsWith(prefix))) {
     return <IconPhotoOff size={w} />;
   }
 
+  if (contentType?.startsWith("video/")) return <video src={src} muted playsInline preload="metadata" aria-label={t("wallpaper.preview")} style={{ width: w, height: h, objectFit: "contain" }} />;
+
   // eslint-disable-next-line @next/next/no-img-element
-  return <img src={src} alt="preview image" style={{ width: w, height: h, objectFit: "contain" }} />;
+  return <img src={src} alt={t("wallpaper.preview")} style={{ width: w, height: h, objectFit: "contain" }} />;
 };
 
 type BackgroundImageKey = "backgroundImageAttachment" | "backgroundImageSize" | "backgroundImageRepeat";

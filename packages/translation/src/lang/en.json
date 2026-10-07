@@ -4969,6 +4969,9 @@
             },
             "ping": {
               "label": "Pings"
+            },
+            "proxmoxDiscovery": {
+              "label": "Proxmox discovery"
             }
           },
           "interval": {
@@ -6559,5 +6562,51 @@
         "description": "Change your color scheme, language, home board, and preferences. You can also jump to the management area from here."
       }
     }
+  },
+  "discovery": {
+    "title": "Homelab discovery",
+    "description": "Discover Proxmox machines and add their web services to your dashboard.",
+    "integration": "Proxmox integration",
+    "chooseIntegration": "Choose Proxmox",
+    "dashboard": "Destination dashboard",
+    "chooseDashboard": "Choose a dashboard",
+    "enabled": "Automatically discover machines and add services",
+    "save": "Save discovery settings",
+    "saved": "Discovery settings saved",
+    "sync": "Sync Proxmox now",
+    "schedule": "Proxmox inventory updates every minute. New services appear after the guest agent reports them.",
+    "lastSync": "Last inventory update: {time}",
+    "missingDashboard": "The destination dashboard is unavailable. Choose another dashboard to continue adding services.",
+    "noIntegration": "Add a Proxmox integration in Manage → Integrations, then return here.",
+    "noDashboard": "Create a dashboard first, then select it as the destination.",
+    "agentSetup": "Agent setup",
+    "agentHelp": "Install the agent inside each VM or LXC container. It detects that guest’s addresses and web services. Your custom tile names and icons are preserved.",
+    "revealToken": "Reveal agent token",
+    "hideToken": "Hide agent token",
+    "rotateToken": "Rotate agent token",
+    "rotated": "Agent token rotated",
+    "rotateWarning": "Rotating the token disconnects all installed agents until you update their configuration.",
+    "confirmRotate": "Rotate and disconnect agents",
+    "cancel": "Cancel",
+    "agentNeeded": "Agent needed",
+    "online": "Online",
+    "offline": "Offline",
+    "noAddress": "No address reported yet",
+    "install": "Show install command",
+    "installHelp": "Run this command inside this guest. The command uses this Homarr address; change it if the guest needs a different reachable address. A built agent release must be available first.",
+    "copy": "Copy command",
+    "copied": "Copied",
+    "restore": "Restore tile",
+    "noServices": "No web services reported yet.",
+    "empty": "Save your Proxmox and dashboard settings, then sync to discover machines.",
+    "dashboardChangeHelp": "Changing the destination keeps existing tiles on the previous dashboard. Use Restore tile to add an existing service to the new dashboard."
+  },
+  "wallpaper": {
+    "pause": "Pause wallpaper",
+    "play": "Play wallpaper",
+    "unavailable": "Wallpaper unavailable",
+    "upload": "Upload background image or video",
+    "formats": "Images, MP4 or WebM · up to 32 MB. Video loops silently.",
+    "preview": "Background preview"
   }
 }

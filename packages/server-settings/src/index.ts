@@ -34,6 +34,20 @@ export interface DiscoveryResource {
   ipAddresses: string[];
   services: DiscoveryService[];
   lastSeenAt: string;
+  lastAgentSeenAt?: string;
+  lastInventorySeenAt?: string;
+  reportIntervalSeconds?: number;
+}
+
+export interface DiscoveryMapping {
+  boardId: string;
+  resourceId: string;
+  serviceId: string;
+  appId: string;
+  itemId: string;
+  managedUrl: string;
+  suppressed: boolean;
+  restoreRequested?: boolean;
 }
 
 export interface DiscoverySettings {
@@ -41,6 +55,11 @@ export interface DiscoverySettings {
   agentToken: string | null;
   proxmoxIntegrationId: string | null;
   resources: DiscoveryResource[];
+  targetBoardId: string | null;
+  mappings: DiscoveryMapping[];
+  lastSyncAt: string | null;
+  syncError: string | null;
+  dashboardError: string | null;
 }
 
 export type ServerSettingsRecord = {
@@ -83,7 +102,14 @@ export const defaultServerSettings = {
     agentToken: null as string | null,
     proxmoxIntegrationId: null as string | null,
     resources: [] as DiscoveryResource[],
+    targetBoardId: null as string | null,
+    mappings: [] as DiscoveryMapping[],
+    lastSyncAt: null as string | null,
+    syncError: null as string | null,
+    dashboardError: null as string | null,
   },
 } satisfies ServerSettingsRecord;
 
 export type ServerSettings = typeof defaultServerSettings;
+
+export * from "./discovery";

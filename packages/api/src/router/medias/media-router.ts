@@ -9,9 +9,13 @@ import { createLocalImageUrl, LOCAL_ICON_REPOSITORY_SLUG, mapMediaToIcon } from 
 import { byIdSchema, paginatedSchema } from "@homarr/validation/common";
 import { mediaUploadSchema } from "@homarr/validation/media";
 
-import { createTRPCRouter, permissionRequiredProcedure, protectedProcedure } from "../../trpc";
+import { createTRPCRouter, permissionRequiredProcedure, protectedProcedure, publicProcedure } from "../../trpc";
 
 export const mediaRouter = createTRPCRouter({
+  getMetadata: publicProcedure.input(byIdSchema).query(async ({ ctx, input }) => {
+    // Media content is already served publicly by /api/user-medias/:id.
+    return (await ctx.db.query.medias.findFirst({ where: eq(medias.id, input.id), columns: { contentType: true } })) ?? null;
+  }),
   getPaginated: protectedProcedure
     .input(
       paginatedSchema.and(
@@ -81,9 +85,11 @@ export const mediaRouter = createTRPCRouter({
 
       const ids = files.map((file) => file.id);
       if (!localIconRepository) return ids;
+      const imageMedias = insertMedias.filter((media) => media.contentType.startsWith("image/"));
+      if (imageMedias.length === 0) return ids;
 
       await ctx.db.insert(icons).values(
-        insertMedias.map((media) => {
+        imageMedias.map((media) => {
           const icon = mapMediaToIcon(media);
 
           return {

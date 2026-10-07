@@ -15,6 +15,10 @@ prompt_value() {
     return
   fi
   if [[ ! -t 0 ]]; then
+    if [[ -n "$default" ]]; then
+      printf -v "$name" '%s' "$default"
+      return
+    fi
     echo "$name is required for non-interactive installation; set it in the environment" >&2
     exit 1
   elif [[ -n "$default" ]]; then
@@ -41,12 +45,18 @@ if [[ "$DISCOVERY_TYPE" != "qemu" && "$DISCOVERY_TYPE" != "lxc" ]]; then
   exit 1
 fi
 
-install -d -m 0755 /usr/local/bin /etc/homarr-discovery-agent
+install -d -m 0755 /usr/local/bin
+install -d -m 0700 /etc/homarr-discovery-agent
+umask 077
 
 if [[ -n "${HOMARR_AGENT_BINARY_URL:-}" ]]; then
-  curl --fail --silent --show-error --location "$HOMARR_AGENT_BINARY_URL" \
+  if [[ -f "$HOMARR_AGENT_BINARY_URL" ]]; then
+    install -m 0755 "$HOMARR_AGENT_BINARY_URL" /usr/local/bin/homarr-discovery-agent
+  else
+    curl --fail --silent --show-error --location "$HOMARR_AGENT_BINARY_URL" \
     --output /usr/local/bin/homarr-discovery-agent
-  chmod 0755 /usr/local/bin/homarr-discovery-agent
+    chmod 0755 /usr/local/bin/homarr-discovery-agent
+  fi
 elif [[ -x "$(dirname "$0")/homarr-discovery-agent" ]]; then
   install -m 0755 "$(dirname "$0")/homarr-discovery-agent" /usr/local/bin/homarr-discovery-agent
 else
@@ -59,21 +69,32 @@ else
       exit 1
       ;;
   esac
-  release_url="${HOMARR_AGENT_RELEASE_URL:-https://github.com/socilate47/setting-up-my-homelab/releases/latest/download/$asset}"
+  release_url="${HOMARR_AGENT_RELEASE_URL:-https://github.com/socilate47/my-homarr/releases/latest/download/$asset}"
   echo "Downloading discovery agent for $arch..."
   curl --fail --silent --show-error --location "$release_url" \
     --output /usr/local/bin/homarr-discovery-agent
   chmod 0755 /usr/local/bin/homarr-discovery-agent
 fi
 
-cat > /etc/homarr-discovery-agent/agent.env <<EOF
-HOMARR_URL=$HOMARR_URL
-HOMARR_DISCOVERY_TOKEN=$HOMARR_DISCOVERY_TOKEN
-DISCOVERY_RESOURCE_ID=$DISCOVERY_RESOURCE_ID
-DISCOVERY_NAME=$DISCOVERY_NAME
-DISCOVERY_TYPE=$DISCOVERY_TYPE
-DISCOVERY_INTERVAL=${DISCOVERY_INTERVAL:-60s}
-EOF
+write_env() {
+  local key="$1" value="$2"
+  if [[ "$value" == *$'\n'* || "$value" == *$'\r'* ]]; then
+    echo "$key cannot contain newlines" >&2
+    exit 1
+  fi
+  value="${value//\\/\\\\}"
+  value="${value//\"/\\\"}"
+  printf '%s="%s"\n' "$key" "$value"
+}
+{
+  write_env HOMARR_URL "$HOMARR_URL"
+  write_env HOMARR_DISCOVERY_TOKEN "$HOMARR_DISCOVERY_TOKEN"
+  write_env DISCOVERY_RESOURCE_ID "$DISCOVERY_RESOURCE_ID"
+  write_env DISCOVERY_NAME "$DISCOVERY_NAME"
+  write_env DISCOVERY_TYPE "$DISCOVERY_TYPE"
+  write_env DISCOVERY_INTERVAL "${DISCOVERY_INTERVAL:-60s}"
+  write_env DISCOVERY_ADDRESS "${DISCOVERY_ADDRESS:-}"
+} > /etc/homarr-discovery-agent/agent.env
 chmod 0600 /etc/homarr-discovery-agent/agent.env
 
 cat > /etc/systemd/system/homarr-discovery-agent.service <<'EOF'
