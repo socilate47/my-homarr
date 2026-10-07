@@ -27,6 +27,16 @@ labels:
 
 The agent does not perform unrestricted network scanning. Proxmox remains the source of truth for VM/LXC inventory, and the agent reports only the machine on which it is installed.
 
+## Native applications on custom ports
+
+For a web app running directly on Linux on an unrecognized port, set `DISCOVERY_WEB_SERVICES` to a JSON array. The agent still detects the address automatically and reports the app only when it finds a non-loopback listener on that port:
+
+```bash
+DISCOVERY_WEB_SERVICES='[{"name":"My frontend","port":5173,"protocol":"http"},{"name":"Admin console","port":10443,"protocol":"https"}]'
+```
+
+Pass this variable to the installer or set it in the agent environment. Each entry needs a name and port from 1 to 65535; protocol defaults to `http`. Ports cannot be declared twice. Custom services start with Homarr's default icon, which you can replace through the dashboard icon picker.
+
 ## Automatic Linux installation
 
 Build a release binary with `build-release.sh`, host the installer and matching binary on an internal HTTPS URL, then run this on each Debian or Ubuntu VM. The installer prompts when run interactively. For piped or other non-interactive use, provide all configuration values in the environment:

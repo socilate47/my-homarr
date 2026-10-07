@@ -81,3 +81,17 @@ func TestDockerBindingsHaveDistinctServiceIdentities(t *testing.T) {
 		t.Fatalf("distinct endpoints need distinct IDs: %#v", services)
 	}
 }
+
+func TestConfiguredNativeWebServicesUseDetectedAddresses(t *testing.T) {
+	t.Setenv("DISCOVERY_WEB_SERVICES", `[{"name":"My frontend","port":5173,"protocol":"http"},{"name":"Admin console","port":10443,"protocol":"https"}]`)
+	services := hostServicesFromEndpoints([]listeningEndpoint{{ip: "0.0.0.0", port: 5173}, {ip: "10.0.0.8", port: 10443}}, []string{"10.0.0.7", "10.0.0.8"})
+	if len(services) != 2 {
+		t.Fatalf("expected declared services, got %#v", services)
+	}
+	if services[0].Name != "My frontend" || services[0].URL != "http://10.0.0.7:5173" {
+		t.Fatalf("wrong frontend: %#v", services[0])
+	}
+	if services[1].Protocol != "https" || services[1].URL != "https://10.0.0.8:10443" {
+		t.Fatalf("wrong admin console: %#v", services[1])
+	}
+}

@@ -71,6 +71,9 @@ func main() {
 	if err != nil || interval < 10*time.Second || interval > 24*time.Hour {
 		panic("DISCOVERY_INTERVAL must be between 10s and 24h")
 	}
+	if _, err := parseNativeWebServices(os.Getenv("DISCOVERY_WEB_SERVICES")); err != nil {
+		panic(err)
+	}
 
 	for {
 		ips := localIPs()
@@ -175,6 +178,41 @@ type listeningEndpoint struct {
 	port int
 }
 
+type nativeWebService struct {
+	Name     string `json:"name"`
+	Port     int    `json:"port"`
+	Protocol string `json:"protocol"`
+}
+
+func parseNativeWebServices(value string) (map[int]nativeWebService, error) {
+	result := make(map[int]nativeWebService)
+	if strings.TrimSpace(value) == "" {
+		return result, nil
+	}
+	var entries []nativeWebService
+	if err := json.Unmarshal([]byte(value), &entries); err != nil {
+		return nil, errors.New("DISCOVERY_WEB_SERVICES must be a JSON array of names, ports and HTTP/HTTPS protocols")
+	}
+	if len(entries) > 256 {
+		return nil, errors.New("DISCOVERY_WEB_SERVICES supports at most 256 services")
+	}
+	for _, entry := range entries {
+		entry.Name = strings.TrimSpace(entry.Name)
+		entry.Protocol = strings.ToLower(strings.TrimSpace(entry.Protocol))
+		if entry.Protocol == "" {
+			entry.Protocol = "http"
+		}
+		if entry.Name == "" || len(entry.Name) > 200 || entry.Port < 1 || entry.Port > 65535 || (entry.Protocol != "http" && entry.Protocol != "https") {
+			return nil, errors.New("DISCOVERY_WEB_SERVICES entries need a name, a port between 1 and 65535, and protocol http or https")
+		}
+		if _, exists := result[entry.Port]; exists {
+			return nil, errors.New("DISCOVERY_WEB_SERVICES cannot declare the same port more than once")
+		}
+		result[entry.Port] = entry
+	}
+	return result, nil
+}
+
 func bindingIdentity(ip string) string {
 	parsed := net.ParseIP(ip)
 	if parsed == nil || parsed.IsUnspecified() {
@@ -196,9 +234,17 @@ func bindingIdentity(ip string) string {
 func hostServicesFromEndpoints(endpoints []listeningEndpoint, ips []string) []service {
 	result := make([]service, 0)
 	seen := make(map[string]bool)
+	declared, _ := parseNativeWebServices(os.Getenv("DISCOVERY_WEB_SERVICES"))
 	for _, endpoint := range endpoints {
 		port := endpoint.port
 		name := knownPorts[port]
+		protocol := "http"
+		if port == 443 || port == 8443 || port == 9443 || port == 8006 {
+			protocol = "https"
+		}
+		if custom, exists := declared[port]; exists {
+			name, protocol = custom.Name, custom.Protocol
+		}
 		if name == "" {
 			continue
 		}
@@ -232,17 +278,17 @@ func hostServicesFromEndpoints(endpoints []listeningEndpoint, ips []string) []se
 		if !usableIP(host) {
 			continue
 		}
-		protocol := "http"
-		if port == 443 || port == 8443 || port == 9443 || port == 8006 {
-			protocol = "https"
-		}
 		url := serviceURL(protocol, host, port)
 		if seen[url] {
 			continue
 		}
 		seen[url] = true
 		icon := strings.ToLower(strings.ReplaceAll(name, " ", "-"))
-		result = append(result, service{ID: fmt.Sprintf("host-%s-%d", bindingIdentity(host), port), Name: name, URL: url, Port: &port, Protocol: protocol, Icon: &icon, Source: "agent", Online: true, LastSeenAt: time.Now().UTC().Format(time.RFC3339)})
+		iconValue := &icon
+		if _, custom := declared[port]; custom || name == "Web service" {
+			iconValue = nil
+		}
+		result = append(result, service{ID: fmt.Sprintf("host-%s-%d", bindingIdentity(host), port), Name: name, URL: url, Port: &port, Protocol: protocol, Icon: iconValue, Source: "agent", Online: true, LastSeenAt: time.Now().UTC().Format(time.RFC3339)})
 	}
 	return result
 }

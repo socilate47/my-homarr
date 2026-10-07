@@ -10,6 +10,8 @@ services:
       DISCOVERY_NAME: ${DISCOVERY_NAME:?set DISCOVERY_NAME in .env}
       DISCOVERY_TYPE: ${DISCOVERY_TYPE:-qemu}
       DISCOVERY_INTERVAL: ${DISCOVERY_INTERVAL:-60s}
+      DISCOVERY_ADDRESS: ${DISCOVERY_ADDRESS:-}
+      DISCOVERY_WEB_SERVICES: ${DISCOVERY_WEB_SERVICES:-}
     network_mode: host
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro

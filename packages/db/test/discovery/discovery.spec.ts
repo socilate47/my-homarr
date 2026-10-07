@@ -57,6 +57,23 @@ describe("discovery reconciliation", () => {
     const state = await updateDiscoveryAsync(db, (state) => { state.resources = [report()]; });
     expect(state.resources[0]?.id).toBe("qemu/100");
   });
+  it("restores a previously known tile even while its VM is offline", async () => {
+    const db = await setup();
+    const [tile] = await db.query.items.findMany();
+    if (!tile) throw new Error("Expected tile");
+    await db.delete(items).where(eq(items.id, tile.id));
+    await updateDiscoveryAsync(db, (state) => {
+      state.resources[0]!.status = "stopped";
+      state.resources[0]!.lastAgentSeenAt = new Date(0).toISOString();
+      state.resources[0]!.services[0]!.online = false;
+    });
+    await updateDiscoveryAsync(db, (state) => {
+      state.mappings[0]!.suppressed = false;
+      state.mappings[0]!.restoreRequested = true;
+    });
+    expect(await db.query.items.findMany()).toHaveLength(1);
+    expect(await db.query.apps.findMany()).toHaveLength(1);
+  });
   it("keeps URL management after restoring a deleted app at a new address", async () => {
     const db = await setup();
     const [app] = await db.query.apps.findMany();
