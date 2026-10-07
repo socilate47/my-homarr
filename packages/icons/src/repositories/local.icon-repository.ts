@@ -1,7 +1,8 @@
 import { createHash } from "crypto";
 
 import type { InferSelectModel } from "@homarr/db";
-import { db } from "@homarr/db";
+import { db, like } from "@homarr/db";
+import { medias as mediaTable } from "@homarr/db/schema";
 import type { medias } from "@homarr/db/schema";
 
 import type { RepositoryIcon, RepositoryIconGroup } from "../types";
@@ -14,10 +15,10 @@ export class LocalIconRepository extends IconRepository {
     super("Local", LOCAL_ICON_REPOSITORY_SLUG, undefined, undefined, undefined, undefined);
   }
   protected async getAllIconsInternalAsync(): Promise<RepositoryIconGroup> {
-    const medias = await db.query.medias.findMany();
+    const medias = await db.query.medias.findMany({ where: like(mediaTable.contentType, "image/%") });
     return {
       success: true,
-      icons: medias.map(mapMediaToIcon),
+      icons: medias.filter((media) => media.contentType.startsWith("image/")).map(mapMediaToIcon),
       slug: LOCAL_ICON_REPOSITORY_SLUG,
     };
   }

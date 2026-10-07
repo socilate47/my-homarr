@@ -14,7 +14,7 @@ export const UploadMediaButton = () => {
   };
 
   return (
-    <UploadMedia onSettled={onSettledAsync} multiple>
+    <UploadMedia onSettled={onSettledAsync} multiple purpose="background">
       {({ onClick, loading }) => (
         <Button onClick={onClick} loading={loading} rightSection={<IconUpload size={16} stroke={1.5} />}>
           {t("media.action.upload.label")}

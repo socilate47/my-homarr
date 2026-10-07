@@ -36,3 +36,48 @@ func TestPublishedPortsReturnsEveryTCPEndpoint(t *testing.T) {
 		t.Fatalf("publishedPorts() = %#v, want [8080 8443]", got)
 	}
 }
+
+func TestDockerEndpointsExcludeLoopback(t *testing.T) {
+	endpoints := parsePublishedEndpoints("127.0.0.1:8080->80/tcp, [::1]:8443->443/tcp, 0.0.0.0:12345->80/tcp")
+	if len(endpoints) != 1 || endpoints[0].port != 12345 || endpoints[0].containerPort != 80 {
+		t.Fatalf("unexpected reachable endpoints: %#v", endpoints)
+	}
+}
+
+func TestDockerWebPortUsesPublishedPortAndStableIdentity(t *testing.T) {
+	output := []byte(`{"ID":"instance-one","Names":"my-web","Labels":"","Ports":"0.0.0.0:12345->80/tcp"}`)
+	first := dockerServicesFromOutput(output, []string{"10.0.0.7"})
+	second := dockerServicesFromOutput([]byte(`{"ID":"instance-two","Names":"my-web","Labels":"","Ports":"0.0.0.0:12345->80/tcp"}`), []string{"10.0.0.8"})
+	if len(first) != 1 || len(second) != 1 {
+		t.Fatalf("expected one service: %#v / %#v", first, second)
+	}
+	if first[0].ID != second[0].ID || second[0].URL != "http://10.0.0.8:12345" {
+		t.Fatalf("service did not keep identity and update address: %#v", second)
+	}
+}
+
+func TestProcLoopbackAddresses(t *testing.T) {
+	for _, address := range []string{"0100007F", "00000000000000000000000001000000"} {
+		if !isLoopbackSocket(address) {
+			t.Errorf("expected loopback for %s", address)
+		}
+	}
+	if isLoopbackSocket("00000000") {
+		t.Error("wildcard listener must remain discoverable")
+	}
+}
+
+func TestBoundHostListenersUseTheirOwnAddress(t *testing.T) {
+	services := hostServicesFromEndpoints([]listeningEndpoint{{ip: "10.0.0.8", port: 3000}, {ip: "fd00::8", port: 8080}}, []string{"10.0.0.7", "10.0.0.8", "fd00::8"})
+	if len(services) != 2 || services[0].URL != "http://10.0.0.8:3000" || services[1].URL != "http://[fd00::8]:8080" {
+		t.Fatalf("wrong URLs for bound listeners: %#v", services)
+	}
+}
+
+func TestDockerBindingsHaveDistinctServiceIdentities(t *testing.T) {
+	output := []byte(`{"Names":"web","Labels":"homarr.discovery.enable=true","Ports":"10.0.0.7:8080->80/tcp, 10.0.0.8:8080->8080/tcp"}`)
+	services := dockerServicesFromOutput(output, []string{"10.0.0.7", "10.0.0.8"})
+	if len(services) != 2 || services[0].ID == services[1].ID {
+		t.Fatalf("distinct endpoints need distinct IDs: %#v", services)
+	}
+}

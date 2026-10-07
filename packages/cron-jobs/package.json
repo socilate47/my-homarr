@@ -12,6 +12,7 @@
     }
   },
   "exports": {
+    "./discovery": "./src/discovery.ts",
     ".": "./index.ts",
     "./job-manager": "./src/job-manager.ts"
   },

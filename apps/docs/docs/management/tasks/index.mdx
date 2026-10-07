@@ -41,3 +41,7 @@ Running a task manually is still possible when it is disabled.
 
 
 
+
+## Proxmox discovery
+
+The **Proxmox discovery** job refreshes the configured VM/LXC inventory every minute by default and once at startup. It runs only when discovery is enabled and a Proxmox integration is selected. Failed polling preserves the last inventory and displays an error on the Discovery page. Configure the guest agent and destination dashboard in [Homelab discovery](/docs/advanced/discovery).

@@ -83,3 +83,9 @@ The OpenAPI and MCP APIs include board management endpoints for common automatio
 - Configure global board defaults such as public home boards and status behavior
 
 Use the interactive API reference to inspect the exact request body for each endpoint under the `boards` and `settings` tags.
+
+## Discovery agent API
+
+The discovery agent posts to `/api/trpc/discovery.heartbeat` with a JSON object wrapped as `{ "json": { ... } }`. The payload contains `token`, `resourceId` (`qemu/100` or `lxc/100`), `name`, `type`, `ipAddresses`, `services` and optional `reportIntervalSeconds` (default 60). Each service has a stable `id`, HTTP/HTTPS `url`, `protocol`, name and port metadata.
+
+Discovery must be enabled, and the supplied token must match the active enrollment token. Payloads are bounded to 64 addresses and 256 services. Settings, token reveal/rotation and service restoration require administrator permission. Routine settings queries omit the token. See [Homelab discovery](/docs/advanced/discovery) for installation and synchronization behavior.

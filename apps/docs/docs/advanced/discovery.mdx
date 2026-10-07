@@ -4,33 +4,70 @@ title: Homelab discovery
 sidebar_label: Homelab discovery
 ---
 
-Homarr can keep a small inventory of homelab machines and services.
+Homarr can discover Proxmox guests and add their web services to a dashboard automatically. Each guest runs a small discovery agent. The agent reads its own network interfaces, listening endpoints and Docker metadata; it does not scan other machines.
 
-## Proxmox inventory
+## Choose Proxmox and a dashboard
 
-Create a Proxmox integration, then open **Manage → Discovery**, enable discovery, select the Proxmox integration, and choose **Sync Proxmox**. Homarr records QEMU virtual machines and LXC containers using their Proxmox resource IDs, names, nodes, and statuses.
+1. Add a Proxmox integration in **Manage → Integrations**. Its API identity needs permission to read cluster resources.
+2. Open **Manage → Discovery** and select the Proxmox integration and destination dashboard.
+3. Enable discovery and choose **Save discovery settings**.
+4. Choose **Sync Proxmox now** for the first inventory update.
 
-## VM agent
+The **Proxmox discovery** background task refreshes inventory every minute by default. A new VM or LXC container appears as **Agent needed** until its own agent reports. The destination board needs an empty section and at least one layout; a board created through Homarr has these automatically.
 
-The optional agent reports the IP addresses and listening TCP ports inside a VM. Build or run it from `tools/homarr-discovery-agent` and set:
+## Install the guest agent
+
+Build the Linux binaries from `tools/homarr-discovery-agent` with `build-release.sh`, or publish a discovery-agent release using this fork's release workflow. The installation command on the Discovery page downloads the binary from the latest release of `socilate47/my-homarr`; that release must contain the matching agent binary first.
+
+On the Discovery page, choose **Show install command** for a guest. The command contains the guest's resource ID, name, Homarr URL and enrollment token. Run it **inside that VM or LXC container**. If the displayed browser URL is not reachable from the guest, replace it with your internal Homarr URL.
+
+For a local binary, run the installer from this checkout:
 
 ```bash
-HOMARR_URL=https://homarr.example.com
-HOMARR_DISCOVERY_TOKEN=the-token-from-homarr
-DISCOVERY_RESOURCE_ID=qemu/100
-DISCOVERY_NAME=media-server
-DISCOVERY_TYPE=qemu
-DISCOVERY_INTERVAL=60s
+sudo HOMARR_URL=https://homarr.example.com \
+  HOMARR_DISCOVERY_TOKEN=the-token-revealed-in-homarr \
+  DISCOVERY_RESOURCE_ID=qemu/100 DISCOVERY_NAME=media-server \
+  HOMARR_AGENT_BINARY_URL=/path/to/homarr-discovery-agent-linux-amd64 \
+  bash tools/homarr-discovery-agent/install-agent.sh
 ```
 
-The agent should be installed only on machines you own and administer. It reports to Homarr over HTTPS and should use a token with limited exposure; rotate the token from the Discovery page if necessary.
+The installer creates `/etc/homarr-discovery-agent/agent.env`, installs a systemd unit and enables it at boot. The directory and token file are restricted to root. Non-interactive installation requires environment values; interactive installation prompts for missing values. The default resource type is `qemu`; set `DISCOVERY_TYPE=lxc` for a container.
 
-The first implementation intentionally does not scan entire network ranges. Install the agent in each VM where application discovery is needed. This avoids false positives and prevents accidental scanning of unrelated networks.
+The agent detects its IP addresses automatically and reports every 60 seconds by default. Set `DISCOVERY_ADDRESS` to one of the guest's addresses when it has multiple LAN interfaces. Set `DISCOVERY_INTERVAL` to change the reporting interval, from `10s` to `24h`.
 
-### Docker
+A guest is shown as offline if no heartbeat is received for three reporting intervals. This is separate from the existing application reachability indicator, which checks whether Homarr can reach the application URL.
 
-The agent includes a Dockerfile and Compose example in `tools/homarr-discovery-agent`. It uses host networking so reported service ports match the VM's reachable ports and reads `/proc/net/tcp` to find listening services.
+## Services and dashboard tiles
 
-### Proxmox LXC
+The agent reports known local web listeners bound to a non-loopback address. With Docker installed, it reads published TCP endpoints and recognizes known web ports inside the container even when the published host port is different. Use labels to include another explicitly selected web service and choose its metadata:
 
-For an LXC container, either install the agent directly in the container or run the agent on the Proxmox host with the container's resource ID. Proxmox synchronization remains the source of truth for container existence and lifecycle state.
+```yaml
+labels:
+  homarr.discovery.enable: "true"
+  homarr.discovery.name: "Grafana"
+  homarr.discovery.icon: "grafana"
+  homarr.discovery.group: "Monitoring"
+  homarr.discovery.protocol: "http"
+```
+
+Use `homarr.discovery.enable=false` to exclude a container. Names inferred from port numbers are suggestions; a TCP listener alone does not prove the identity of an application. Unknown host TCP ports are not automatically turned into HTTP links. Docker labels currently supply names, icons and protocols; the group label is retained as metadata and does not create dashboard sections automatically.
+
+New reported web services become app tiles on the chosen board. Different ports on the same IP become separate links. Repeated reports do not create duplicate tiles, and IP changes update URLs still managed by discovery.
+
+You can edit the app name, upload an icon through the existing icon picker, and move the tile. Reports preserve these choices. If you manually change an app URL, discovery keeps that override. Removed tiles stay removed; use **Restore tile** in Discovery to add them again. Missing or offline guests retain their inventory and existing tiles.
+
+Changing the destination board keeps existing tiles on the previous board. Use **Restore tile** for an existing service to add it to the new destination; future new services appear automatically there. Disabling discovery stops synchronization and rejects agent updates without deleting apps or tiles.
+
+## Tokens
+
+Routine discovery queries do not return the enrollment token. Administrators can reveal it explicitly. Rotating it requires confirmation and makes installed agents stop reporting until their token configuration is updated. Changing the selected Proxmox integration also rotates the token, preventing old agents from silently joining a different inventory.
+
+## Docker agent deployment
+
+The Compose example uses host networking and the host Docker socket. Configure the required variables in `.env` before starting it. Access to the Docker socket is privileged, even when its filesystem mount is marked read-only; run this agent only on guests you administer.
+
+## Live wallpapers
+
+Open **Board settings → Background** and upload an image, MP4 or WebM video, up to 32 MB. Uploaded videos are detected using stored media type, so extensionless media URLs work. External MP4, WebM and Ogg video URLs also work, including URLs with query strings.
+
+Video backgrounds loop silently. The wallpaper control pauses or resumes playback. Videos pause while the page is hidden and respect reduced-motion preferences unless you explicitly choose to play. Icon uploads remain image-only.

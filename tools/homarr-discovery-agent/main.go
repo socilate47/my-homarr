@@ -2,6 +2,8 @@ package main
 
 import (
 	"bytes"
+	"context"
+	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -31,19 +33,21 @@ type service struct {
 }
 
 type heartbeat struct {
-	Token       string    `json:"token"`
-	ResourceID  string    `json:"resourceId"`
-	Name        string    `json:"name"`
-	Type        string    `json:"type"`
-	Node        string    `json:"node"`
-	Status      string    `json:"status"`
-	IPAddresses []string  `json:"ipAddresses"`
-	Services    []service `json:"services"`
+	Token                 string    `json:"token"`
+	ResourceID            string    `json:"resourceId"`
+	Name                  string    `json:"name"`
+	Type                  string    `json:"type"`
+	Node                  string    `json:"node"`
+	Status                string    `json:"status"`
+	IPAddresses           []string  `json:"ipAddresses"`
+	Services              []service `json:"services"`
+	ReportIntervalSeconds int       `json:"reportIntervalSeconds"`
 }
 
 var knownPorts = map[int]string{
 	80:    "Web service",
 	443:   "Web service",
+	8443:  "Web service",
 	3000:  "Grafana",
 	5000:  "TrueNAS",
 	8006:  "Proxmox",
@@ -64,8 +68,8 @@ func main() {
 	resourceType := envOrDefault("DISCOVERY_TYPE", "qemu")
 	node := envOrDefault("DISCOVERY_NODE", "")
 	interval, err := time.ParseDuration(envOrDefault("DISCOVERY_INTERVAL", "60s"))
-	if err != nil || interval < 10*time.Second {
-		panic("DISCOVERY_INTERVAL must be at least 10s")
+	if err != nil || interval < 10*time.Second || interval > 24*time.Hour {
+		panic("DISCOVERY_INTERVAL must be between 10s and 24h")
 	}
 
 	for {
@@ -74,6 +78,7 @@ func main() {
 			Token: token, ResourceID: resourceID, Name: name,
 			Type: resourceType, Node: node, Status: "running",
 			IPAddresses: ips, Services: discoverServices(ips),
+			ReportIntervalSeconds: int(interval / time.Second),
 		}); err != nil {
 			fmt.Fprintf(os.Stderr, "heartbeat failed: %v\n", err)
 		}
@@ -113,7 +118,7 @@ func sendHeartbeat(server string, payload heartbeat) error {
 }
 
 func localIPs() []string {
-	var result []string
+	result := make([]string, 0)
 	interfaces, _ := net.Interfaces()
 	for _, iface := range interfaces {
 		name := strings.ToLower(iface.Name)
@@ -137,7 +142,7 @@ func localIPs() []string {
 
 func usableIP(value string) bool {
 	ip := net.ParseIP(value)
-	return ip != nil && !ip.IsLoopback() && !ip.IsLinkLocalUnicast() && !ip.IsLinkLocalMulticast() && !ip.IsUnspecified()
+	return ip != nil && !ip.IsLoopback() && !ip.IsLinkLocalUnicast() && !ip.IsMulticast() && !ip.IsUnspecified()
 }
 
 func selectHostAddress(ips []string, override string) string {
@@ -165,28 +170,94 @@ func serviceURL(protocol, host string, port int) string {
 	return fmt.Sprintf("%s://%s", protocol, net.JoinHostPort(host, strconv.Itoa(port)))
 }
 
-func discoverServices(ips []string) []service {
-	now := time.Now().UTC().Format(time.RFC3339)
-	host := selectHostAddress(ips, os.Getenv("DISCOVERY_ADDRESS"))
-	byID := make(map[string]service)
-	for _, port := range listeningPorts() {
+type listeningEndpoint struct {
+	ip   string
+	port int
+}
+
+func bindingIdentity(ip string) string {
+	parsed := net.ParseIP(ip)
+	if parsed == nil || parsed.IsUnspecified() {
+		return "any"
+	}
+	interfaces, _ := net.Interfaces()
+	for _, iface := range interfaces {
+		addresses, _ := iface.Addrs()
+		for index, address := range addresses {
+			candidate, _, err := net.ParseCIDR(address.String())
+			if err == nil && candidate.Equal(parsed) {
+				return fmt.Sprintf("%s-%d", iface.Name, index)
+			}
+		}
+	}
+	return ip
+}
+
+func hostServicesFromEndpoints(endpoints []listeningEndpoint, ips []string) []service {
+	result := make([]service, 0)
+	seen := make(map[string]bool)
+	for _, endpoint := range endpoints {
+		port := endpoint.port
 		name := knownPorts[port]
-		if name == "" || host == "127.0.0.1" {
+		if name == "" {
+			continue
+		}
+		parsed := net.ParseIP(endpoint.ip)
+		if parsed == nil || parsed.IsLoopback() || parsed.IsLinkLocalUnicast() {
+			continue
+		}
+		host := endpoint.ip
+		if parsed.IsUnspecified() {
+			candidates := ips
+			if parsed.To4() != nil {
+				candidates = nil
+				for _, ip := range ips {
+					if candidate := net.ParseIP(ip); candidate != nil && candidate.To4() != nil {
+						candidates = append(candidates, ip)
+					}
+				}
+			}
+			host = selectHostAddress(candidates, os.Getenv("DISCOVERY_ADDRESS"))
+		} else {
+			belongsToGuest := false
+			for _, ip := range ips {
+				if candidate := net.ParseIP(ip); candidate != nil && candidate.Equal(parsed) {
+					belongsToGuest = true
+				}
+			}
+			if !belongsToGuest {
+				continue
+			}
+		}
+		if !usableIP(host) {
 			continue
 		}
 		protocol := "http"
-		if port == 443 || port == 8443 || port == 9443 {
+		if port == 443 || port == 8443 || port == 9443 || port == 8006 {
 			protocol = "https"
 		}
-		icon := strings.ToLower(strings.ReplaceAll(name, " ", "-"))
-		byID[fmt.Sprintf("host-port-%d", port)] = service{
-			ID: fmt.Sprintf("host-port-%d", port), Name: name,
-			URL:  serviceURL(protocol, host, port),
-			Port: &port, Protocol: protocol, Icon: &icon,
-			Source: "agent", Online: true, LastSeenAt: now,
+		url := serviceURL(protocol, host, port)
+		if seen[url] {
+			continue
 		}
+		seen[url] = true
+		icon := strings.ToLower(strings.ReplaceAll(name, " ", "-"))
+		result = append(result, service{ID: fmt.Sprintf("host-%s-%d", bindingIdentity(host), port), Name: name, URL: url, Port: &port, Protocol: protocol, Icon: &icon, Source: "agent", Online: true, LastSeenAt: time.Now().UTC().Format(time.RFC3339)})
+	}
+	return result
+}
+
+func discoverServices(ips []string) []service {
+	byID := make(map[string]service)
+	for _, item := range hostServicesFromEndpoints(listeningEndpoints(), ips) {
+		byID[item.ID] = item
 	}
 	for _, item := range discoverDockerServices(ips) {
+		for id, existing := range byID {
+			if strings.SplitN(existing.URL, "://", 2)[1] == strings.SplitN(item.URL, "://", 2)[1] {
+				delete(byID, id)
+			}
+		}
 		byID[item.ID] = item
 	}
 	result := make([]service, 0, len(byID))
@@ -198,11 +269,17 @@ func discoverServices(ips []string) []service {
 }
 
 func discoverDockerServices(ips []string) []service {
-	output, err := exec.Command("docker", "ps", "--format", "{{json .}}").Output()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	output, err := exec.CommandContext(ctx, "docker", "ps", "--format", "{{json .}}").Output()
 	if err != nil {
 		return nil
 	}
 
+	return dockerServicesFromOutput(output, ips)
+}
+
+func dockerServicesFromOutput(output []byte, ips []string) []service {
 	host := selectHostAddress(ips, os.Getenv("DISCOVERY_ADDRESS"))
 
 	var result []service
@@ -223,7 +300,7 @@ func discoverDockerServices(ips []string) []service {
 		if labels["homarr.discovery.enable"] == "false" {
 			continue
 		}
-		ports := publishedPorts(container.Ports)
+		ports := parsePublishedEndpoints(container.Ports)
 		if len(ports) == 0 || host == "127.0.0.1" {
 			continue
 		}
@@ -233,23 +310,28 @@ func discoverDockerServices(ips []string) []service {
 		}
 		icon := labels["homarr.discovery.icon"]
 		group := labels["homarr.discovery.group"]
-		for _, port := range ports {
+		for _, endpoint := range ports {
+			port := endpoint.port
+			serviceHost := host
+			if parsed := net.ParseIP(endpoint.host); parsed != nil && !parsed.IsUnspecified() {
+				serviceHost = endpoint.host
+			}
 			protocol := "http"
-			if override := labels["homarr.discovery.protocol"]; override == "https" {
+			if override := labels["homarr.discovery.protocol"]; override == "https" || override == "http" {
 				protocol = override
-			} else if port == 443 || port == 8443 || port == 9443 {
+			} else if endpoint.containerPort == 443 || port == 443 || port == 8443 || port == 9443 || port == 8006 {
 				protocol = "https"
 			}
 			serviceName := name
 			if len(ports) > 1 {
 				serviceName = fmt.Sprintf("%s (%d)", name, port)
 			}
-			if labels["homarr.discovery.enable"] != "true" && knownPorts[port] == "" {
+			if labels["homarr.discovery.enable"] != "true" && knownPorts[port] == "" && knownPorts[endpoint.containerPort] == "" {
 				continue
 			}
 			result = append(result, service{
-				ID: fmt.Sprintf("docker-%s-%d", strings.Trim(strings.ToLower(container.Names), "/"), port), Name: serviceName,
-				URL:  serviceURL(protocol, host, port),
+				ID: dockerEndpointID(container.Names, endpoint), Name: serviceName,
+				URL:  serviceURL(protocol, serviceHost, port),
 				Port: &port, Protocol: protocol, Icon: optionalString(icon),
 				Group: optionalString(group), Source: "agent", Online: true,
 				LastSeenAt: time.Now().UTC().Format(time.RFC3339),
@@ -270,9 +352,15 @@ func parseLabels(value string) map[string]string {
 	return labels
 }
 
-func publishedPorts(value string) []int {
-	var ports []int
-	seen := make(map[int]bool)
+type publishedEndpoint struct {
+	host          string
+	port          int
+	containerPort int
+}
+
+func parsePublishedEndpoints(value string) []publishedEndpoint {
+	var ports []publishedEndpoint
+	seen := make(map[string]bool)
 	for _, part := range strings.Split(value, ", ") {
 		if !strings.Contains(part, "->") {
 			continue
@@ -282,17 +370,36 @@ func publishedPorts(value string) []int {
 			continue
 		}
 		hostPort := mapping[0]
+		host := ""
 		if index := strings.LastIndex(hostPort, ":"); index >= 0 {
+			host = strings.Trim(hostPort[:index], "[]")
 			hostPort = hostPort[index+1:]
 		}
+		if parsed := net.ParseIP(host); parsed != nil && (parsed.IsLoopback() || parsed.IsLinkLocalUnicast()) {
+			continue
+		}
 		port, err := strconv.Atoi(hostPort)
-		if err == nil && port > 0 && port < 65536 && !seen[port] {
-			ports = append(ports, port)
-			seen[port] = true
+		innerPort, innerErr := strconv.Atoi(strings.TrimSuffix(mapping[1], "/tcp"))
+		keyHost := host
+		if parsed := net.ParseIP(host); parsed != nil && parsed.IsUnspecified() {
+			keyHost = ""
+		}
+		key := fmt.Sprintf("%s:%d", keyHost, port)
+		if err == nil && innerErr == nil && innerPort > 0 && innerPort < 65536 && port > 0 && port < 65536 && !seen[key] {
+			ports = append(ports, publishedEndpoint{host: host, port: port, containerPort: innerPort})
+			seen[key] = true
 		}
 	}
-	sort.Ints(ports)
+	sort.Slice(ports, func(i, j int) bool { return ports[i].port < ports[j].port })
 	return ports
+}
+
+func publishedPorts(value string) []int {
+	var result []int
+	for _, endpoint := range parsePublishedEndpoints(value) {
+		result = append(result, endpoint.port)
+	}
+	return result
 }
 
 func optionalString(value string) *string {
@@ -302,9 +409,9 @@ func optionalString(value string) *string {
 	return &value
 }
 
-func listeningPorts() []int {
-	seen := make(map[int]bool)
-	var ports []int
+func listeningEndpoints() []listeningEndpoint {
+	seen := make(map[string]bool)
+	var endpoints []listeningEndpoint
 	for _, filename := range []string{"/proc/net/tcp", "/proc/net/tcp6"} {
 		data, err := os.ReadFile(filename)
 		if err != nil {
@@ -315,25 +422,29 @@ func listeningPorts() []int {
 			if len(fields) < 4 || fields[3] != "0A" {
 				continue
 			}
-			endpoint := strings.Split(fields[1], ":")
-			if len(endpoint) != 2 || isLoopbackSocket(endpoint[0]) {
+			parts := strings.Split(fields[1], ":")
+			if len(parts) != 2 {
 				continue
 			}
-			port, err := strconv.ParseInt(endpoint[1], 16, 32)
-			if err == nil && port > 0 && port < 65536 && !seen[int(port)] {
-				ports = append(ports, int(port))
-				seen[int(port)] = true
+			address := decodeSocketAddress(parts[0])
+			if address == nil || address.IsLoopback() || address.IsLinkLocalUnicast() {
+				continue
+			}
+			port, err := strconv.ParseInt(parts[1], 16, 32)
+			key := fmt.Sprintf("%s:%d", address.String(), port)
+			if err == nil && port > 0 && port < 65536 && !seen[key] {
+				endpoints = append(endpoints, listeningEndpoint{ip: address.String(), port: int(port)})
+				seen[key] = true
 			}
 		}
 	}
-	sort.Ints(ports)
-	return ports
+	return endpoints
 }
 
-func isLoopbackSocket(address string) bool {
+func decodeSocketAddress(address string) net.IP {
 	decoded, err := hex.DecodeString(address)
-	if err != nil {
-		return false
+	if err != nil || (len(decoded) != 4 && len(decoded) != 16) {
+		return nil
 	}
 	for start := 0; start < len(decoded); start += 4 {
 		end := start + 4
@@ -344,7 +455,15 @@ func isLoopbackSocket(address string) bool {
 			decoded[left], decoded[right] = decoded[right], decoded[left]
 		}
 	}
-	return net.IP(decoded).IsLoopback()
+	return net.IP(decoded)
+}
+
+func isLoopbackSocket(address string) bool { return decodeSocketAddress(address).IsLoopback() }
+
+func dockerEndpointID(name string, endpoint publishedEndpoint) string {
+	value := fmt.Sprintf("%s/%s/%d/%d", strings.Trim(name, "/"), bindingIdentity(endpoint.host), endpoint.port, endpoint.containerPort)
+	hash := sha256.Sum256([]byte(value))
+	return fmt.Sprintf("docker-%x", hash[:12])
 }
 
 func requiredEnv(key string) string {
