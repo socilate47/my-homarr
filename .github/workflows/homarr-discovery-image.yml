@@ -28,13 +28,18 @@ jobs:
         run: go test ./... && go vet ./...
       - name: Check installer syntax
         run: bash -n tools/homarr-discovery-agent/install-agent.sh
+      - name: Check deployment setup
+        run: |
+          bash -n deployments/homelab-discovery/setup.sh
+          python3 deployments/homelab-discovery/test-setup.py
+          SECRET_ENCRYPTION_KEY=0000000000000000000000000000000000000000000000000000000000000000 docker compose -f deployments/homelab-discovery/compose.yml config --quiet
       - name: Check affected workspace types
         run: pnpm exec turbo typecheck --filter=@homarr/nextjs --filter=@homarr/api --filter=@homarr/cron-jobs --filter=@homarr/db --filter=@homarr/server-settings --filter=@homarr/validation --filter=@homarr/forms-collection --filter=@homarr/icons
       - name: Run discovery and media regression tests
         env:
           CI: "true"
           NODE_ENV: development
-        run: pnpm exec vitest run packages/db/test/discovery/discovery.spec.ts packages/api/src/router/test/discovery.spec.ts packages/validation/src/test/media.spec.ts
+        run: pnpm exec vitest run packages/db/test/discovery/discovery.spec.ts packages/api/src/router/test/discovery.spec.ts packages/validation/src/test/media.spec.ts apps/nextjs/src/app/api/discovery-agent/route.spec.ts
 
   build:
     needs: verify

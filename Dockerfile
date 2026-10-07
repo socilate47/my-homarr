@@ -2,6 +2,14 @@
 
 FROM node:24.18.0-alpine AS base
 
+FROM golang:1.23-alpine AS discovery-agent
+WORKDIR /src
+COPY tools/homarr-discovery-agent/go.mod tools/homarr-discovery-agent/main.go ./
+COPY tools/homarr-discovery-agent/install-agent.sh /out/install-agent.sh
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags="-s -w" -o /out/homarr-discovery-agent-linux-amd64 . && \
+    CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -trimpath -ldflags="-s -w" -o /out/homarr-discovery-agent-linux-arm64 . && \
+    cd /out && sha256sum install-agent.sh homarr-discovery-agent-linux-* > SHA256SUMS
+
 FROM base AS builder
 ARG TARGETPLATFORM
 WORKDIR /app
@@ -40,6 +48,9 @@ ARG SKIP_ENV_VALIDATION='true'
 ARG CI='true'
 ARG DISABLE_REDIS_LOGS='true'
 ARG TARGETPLATFORM
+
+RUN pnpm exec turbo typecheck --filter=@homarr/nextjs --filter=@homarr/api --filter=@homarr/cron-jobs --filter=@homarr/db --filter=@homarr/server-settings --filter=@homarr/validation --filter=@homarr/forms-collection --filter=@homarr/icons && \
+    CI=true NODE_ENV=development pnpm exec vitest run packages/db/test/discovery/discovery.spec.ts packages/api/src/router/test/discovery.spec.ts packages/validation/src/test/media.spec.ts apps/nextjs/src/app/api/discovery-agent/route.spec.ts
 
 RUN --mount=type=secret,id=TURBO_API,env=TURBO_API \
     --mount=type=secret,id=TURBO_TEAM,env=TURBO_TEAM \
@@ -82,6 +93,7 @@ COPY --from=builder /app/packages/db/migrations ./db/migrations
 COPY --from=builder /app/apps/nextjs/.next/standalone ./
 COPY --from=builder /app/apps/nextjs/.next/static ./apps/nextjs/.next/static
 COPY --from=builder /app/apps/nextjs/public ./apps/nextjs/public
+COPY --from=discovery-agent /out /app/discovery-agent
 COPY scripts/run.sh ./run.sh
 COPY --chmod=755 scripts/entrypoint.sh ./entrypoint.sh
 COPY packages/redis/redis.conf /app/redis.conf
@@ -94,6 +106,7 @@ ENV DB_DRIVER='better-sqlite3'
 ENV AUTH_PROVIDERS='credentials'
 ENV REDIS_IS_EXTERNAL='false'
 ENV NODE_ENV='production'
+ENV HOMARR_DISCOVERY_ASSET_DIR='/app/discovery-agent'
 
 EXPOSE 7575
 ENTRYPOINT [ "/app/entrypoint.sh" ]

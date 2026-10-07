@@ -1,0 +1,24 @@
+services:
+  homarr:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    image: homarr-discovery:local
+    restart: unless-stopped
+    init: true
+    ports:
+      - "${HOMARR_PORT:-7575}:7575"
+    environment:
+      SECRET_ENCRYPTION_KEY: "${SECRET_ENCRYPTION_KEY:?Run setup.sh to create the persistent encryption key}"
+      TZ: "${TZ:-Etc/UTC}"
+    volumes:
+      - homarr-data:/appdata
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:7575').then(r=>process.exit(r.status<500?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      start_period: 120s
+      retries: 5
+
+volumes:
+  homarr-data:

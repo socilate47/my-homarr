@@ -15,7 +15,6 @@ interface DiscoveryActionsProps {
   boards: { id: string; name: string; isHome: boolean }[];
 }
 const quote = (value: string) => `'${value.replaceAll("'", "'\\''")}'`;
-const installerUrl = "https://raw.githubusercontent.com/socilate47/my-homarr/homarr-discovery/tools/homarr-discovery-agent/install-agent.sh";
 
 export function DiscoveryActions({ initialSettings, integrations, boards }: DiscoveryActionsProps) {
   const t = useScopedI18n("discovery");
@@ -75,7 +74,7 @@ export function DiscoveryActions({ initialSettings, integrations, boards }: Disc
       {settings.resources.map((resource) => {
         const online = isDiscoveryAgentOnline(resource) && resource.status === "running";
         const command = reveal.data && installId === resource.id && typeof window !== "undefined"
-          ? `curl -fsSL ${quote(installerUrl)} -o /tmp/install-homarr-agent.sh && sudo env HOMARR_URL=${quote(window.location.origin)} HOMARR_DISCOVERY_TOKEN=${quote(reveal.data)} DISCOVERY_RESOURCE_ID=${quote(resource.id)} DISCOVERY_NAME=${quote(resource.name)} DISCOVERY_TYPE=${quote(resource.type)} bash /tmp/install-homarr-agent.sh`
+          ? `curl -fsSL ${quote(`${window.location.origin}/api/discovery-agent/install-agent.sh`)} -o /tmp/install-homarr-agent.sh && sudo env HOMARR_URL=${quote(window.location.origin)} HOMARR_DISCOVERY_TOKEN=${quote(reveal.data)} DISCOVERY_RESOURCE_ID=${quote(resource.id)} DISCOVERY_NAME=${quote(resource.name)} DISCOVERY_TYPE=${quote(resource.type)} bash /tmp/install-homarr-agent.sh`
           : null;
         return <Card key={resource.id} withBorder><Stack gap="sm">
           <Group justify="space-between"><Text fw={600} style={{ overflowWrap: "anywhere" }}>{resource.name}</Text><Badge color={online ? "green" : "gray"}>{!resource.lastAgentSeenAt ? t("agentNeeded") : online ? t("online") : t("offline")}</Badge></Group>

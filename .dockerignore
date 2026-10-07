@@ -23,3 +23,8 @@ apps/nextjs/.next
 .env
 .env.*
 !.env.example
+**/.env
+**/.env.*
+!**/.env.example
+tools/homarr-discovery-agent/dist
+apps/nextjs/public/discovery-agent
