@@ -103,7 +103,6 @@ COPY nginx.conf /etc/nginx/templates/nginx.conf
 ENV DB_URL='/appdata/db/db.sqlite'
 ENV DB_DIALECT='sqlite'
 ENV DB_DRIVER='better-sqlite3'
-ENV AUTH_PROVIDERS='credentials'
 ENV REDIS_IS_EXTERNAL='false'
 ENV NODE_ENV='production'
 ENV HOMARR_DISCOVERY_ASSET_DIR='/app/discovery-agent'

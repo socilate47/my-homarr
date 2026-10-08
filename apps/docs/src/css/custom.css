@@ -1,4 +1,3 @@
-@import url("https://api.fontshare.com/v2/css?f[]=work-sans@2,1&display=swap");
 @import "tailwindcss/theme" layer(theme);
 @import "tailwindcss/utilities" layer(utilities);
 
@@ -9,44 +8,10 @@
   --breakpoint-3xl: 1697px;
 }
 
-:root {
-  --ifm-color-primary: #fa5252;
-  --ifm-color-primary-dark: #f93232;
-  --ifm-color-primary-darker: #f92222;
-  --ifm-color-primary-darkest: #d20606;
-  --ifm-color-primary-light: #fb7272;
-  --ifm-color-primary-lighter: #fb8282;
-  --ifm-color-primary-lightest: #fdc3c3;
-  --ifm-code-font-size: 95%;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
-  --homarr-secondary-bg: #e8e8e8;
 
-  --aa-primary-color-rgb: #fa5252 !important;
-  --aa-muted-color-rgb: #fa5252 !important;
-  --aa-background-color-rgb: 200,200,200 !important;
-
-  --ifm-font-family-base: 'Work Sans', sans-serif;
-  --ifm-color-content-inverse: var(--ifm-color-emphasis-100);
-}
 
 /* For readability concerns, you should choose a lighter palette in dark mode. */
-[data-theme='dark'] {
-  --ifm-color-primary: #fa5252;
-  --ifm-color-primary-dark: #f93232;
-  --ifm-color-primary-darker: #f92222;
-  --ifm-color-primary-darkest: #d20606;
-  --ifm-color-primary-light: #fb7272;
-  --ifm-color-primary-lighter: #fb8282;
-  --ifm-color-primary-lightest: #fdc3c3;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
-  --homarr-secondary-bg: #181818;
-  --ifm-color-content-inverse: var(--ifm-color-emphasis-100);
 
-
-  --aa-primary-color-rgb: #fa5252 !important;
-  --aa-muted-color-rgb: #fa5252 !important;
-  --aa-background-color-rgb: 24,24,24 !important;
-}
 
 .aa-DetachedOverlay {
   backdrop-filter: blur(10px) brightness(0.5);
@@ -203,3 +168,68 @@ html[data-theme="dark"] div#__docusaurus div[role="banner"] button svg {
     transform: translateY(0);
   }
 }
+
+/* My Homarr: a personal homelab field guide. */
+:root {
+  --ifm-code-font-size: 95%;
+  --docusaurus-highlighted-code-line-bg: rgba(16, 44, 68, .08);
+  --ifm-color-primary: #087f8c;
+  --ifm-color-primary-dark: #066f7b;
+  --ifm-color-primary-darker: #056571;
+  --ifm-color-primary-darkest: #044e57;
+  --ifm-color-primary-light: #0c929f;
+  --ifm-color-primary-lighter: #13a2af;
+  --ifm-color-primary-lightest: #bce6e8;
+  --ifm-background-color: #f5f8fc;
+  --ifm-navbar-background-color: #ffffff;
+  --ifm-color-content: #102c44;
+  --ifm-font-family-base: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --ifm-font-family-monospace: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --my-homarr-surface: #ffffff;
+  --my-homarr-muted: #536a7d;
+  --my-homarr-border: #d8e3ed;
+  --my-homarr-orange: #b65c30;
+  --my-homarr-shadow: rgba(16, 44, 68, .08);
+  --my-homarr-button-text: #ffffff;
+  --homarr-secondary-bg: #edf2f7;
+  --aa-primary-color-rgb: 8, 127, 140 !important;
+  --aa-muted-color-rgb: 83, 106, 125 !important;
+  --aa-background-color-rgb: 255, 255, 255 !important;
+}
+[data-theme="dark"] {
+  --docusaurus-highlighted-code-line-bg: rgba(255, 255, 255, .08);
+  --ifm-color-primary: #63c4c2;
+  --ifm-color-primary-dark: #49b3b0;
+  --ifm-color-primary-darker: #38a6a3;
+  --ifm-color-primary-darkest: #2c8582;
+  --ifm-color-primary-light: #82d0cf;
+  --ifm-color-primary-lighter: #a1dedd;
+  --ifm-color-primary-lightest: #c9edec;
+  --ifm-background-color: #101f2c;
+  --ifm-navbar-background-color: #142735;
+  --ifm-color-content: #e3edf4;
+  --my-homarr-surface: #142735;
+  --my-homarr-muted: #a4b8c8;
+  --my-homarr-border: #2b4254;
+  --my-homarr-orange: #edab7c;
+  --my-homarr-shadow: rgba(0, 0, 0, .16);
+  --my-homarr-button-text: #102c44;
+  --homarr-secondary-bg: #142735;
+  --aa-primary-color-rgb: 99, 196, 194 !important;
+  --aa-muted-color-rgb: 164, 184, 200 !important;
+  --aa-background-color-rgb: 20, 39, 53 !important;
+}
+.button--primary { --ifm-button-color: var(--my-homarr-button-text); }
+.navbar { box-shadow: none; border-bottom: 1px solid var(--my-homarr-border); }
+.navbar__inner a.navbar__brand { font-size: 19px; color: var(--ifm-color-content); }
+.navbar__logo { margin-right: 10px; }
+.navbar__logo img { width: 32px; height: 32px; }
+.footer { border-top: 1px solid var(--my-homarr-border); }
+.footer__title { font-size: 13px; }
+.footer__link-item, .footer__copyright { font-size: 13px; }
+.markdown h1 { letter-spacing: -.035em; }
+.markdown h2 { letter-spacing: -.02em; }
+.theme-doc-sidebar-container { border-right-color: var(--my-homarr-border) !important; }
+.table-of-contents__link { color: var(--my-homarr-muted); }
+a:focus-visible, button:focus-visible { outline: 3px solid var(--my-homarr-orange); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { .menu__list { transition: none !important; } .hover-animation { animation: none; } }

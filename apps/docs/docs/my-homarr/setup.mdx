@@ -1,0 +1,50 @@
+---
+title: Connect the lab
+sidebar_label: Setup
+sidebar_position: 2
+---
+
+# Connect the lab
+
+My Homarr runs in Docker on the VM chosen for the dashboard. The guest agent runs separately inside each Linux machine whose services should be discovered.
+
+## 1. Start My Homarr
+
+Install Docker Engine, its Compose plugin and OpenSSL on the dashboard VM. From the source checkout, run:
+
+```bash
+bash deployments/homelab-discovery/setup.sh
+```
+
+The script creates a persistent encryption key, builds this fork and waits for Homarr to become healthy. Open `http://YOUR-VM-ADDRESS:7575` and finish onboarding.
+
+To change the port before starting, run `setup.sh --init-only`, edit `deployments/homelab-discovery/.env`, then run the setup script again. Keep the encryption key with the data backup and preserve it when reusing existing data.
+
+## 2. Choose the dashboard
+
+Create the board you want to use as your homepage. In Manage → Integrations, add your Proxmox connection.
+
+Open Manage → Discovery. Select that integration and the destination dashboard, enable discovery, and save. Choose Sync Proxmox now for the first inventory update. Scheduled polling continues after this first sync.
+
+## 3. Connect each Linux guest
+
+A newly discovered VM shows Agent needed. Choose Show install command and run the command inside that VM.
+
+The installer and matching Linux binary are served by your Homarr instance. You do not need to publish a separate GitHub release. If the browser address in the copied command is unreachable from the guest, replace it with the reachable internal Homarr address.
+
+The agent detects the guest’s IP addresses automatically. It reports known web listeners and Docker-published services; unusual native web ports can be declared through `DISCOVERY_WEB_SERVICES`.
+
+See [the complete agent guide](/docs/advanced/discovery) for custom ports, multiple network interfaces and Docker deployment.
+
+## 4. Check the board
+
+After the first report, the service shortcuts appear on the selected dashboard. Two services using one address with different ports have separate links.
+
+Move the tiles and choose the icons you want. Subsequent reports keep these choices. The app’s reachability indicator and the guest’s last heartbeat are separate checks.
+
+If an agent is not reporting, check its service:
+
+```bash
+sudo systemctl status homarr-discovery-agent
+sudo journalctl -u homarr-discovery-agent --since '10 minutes ago'
+```

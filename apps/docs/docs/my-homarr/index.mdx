@@ -1,0 +1,31 @@
+---
+title: My Homarr
+sidebar_label: Start here
+sidebar_position: 1
+---
+
+# My Homarr
+
+This is my personal Homarr build for a Proxmox homelab. The goal is simple: see the machines in one place, open their services without remembering every address, and keep the dashboard looking like mine.
+
+The source lives in [socilate47/my-homarr](https://github.com/socilate47/my-homarr), on the `homarr-discovery` branch.
+
+## How my build works
+
+Proxmox supplies the VM and LXC inventory. A small Linux guest agent reports that machine’s addresses and web services. My Homarr uses those reports to add service tiles to the dashboard I choose.
+
+Different ports become different shortcuts. When an address changes, discovery updates the links it manages while keeping custom names, uploaded icons and tile positions.
+
+## The notes to start with
+
+- [Run the build and connect the lab](./setup)
+- [Make the dashboard mine](./dashboard)
+- [Guest-agent configuration and discovery details](/docs/advanced/discovery)
+
+## What comes from Homarr
+
+The dashboard, widgets and many integration capabilities come from the upstream [Homarr project](https://github.com/homarr-labs/homarr). This fork adds its own discovery workflow, agent distribution and setup notes. The general integration and widget guides remain useful upstream reference material; they are not presented as work invented by this fork.
+
+## Guest support
+
+The current agent runs on Linux VMs and LXC containers. Windows VMs and appliances can appear in the Proxmox inventory, but do not use this Linux installer. Add their service links manually or configure an existing integration such as OPNsense. A VM without a running operating system has no application address to report yet.
