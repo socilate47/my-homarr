@@ -23,26 +23,21 @@ COPY patches ./patches
 # @homarr/definitions generates documentation types during install.
 COPY --parents ./apps/*/package.json ./packages/*/package.json ./tooling/*/package.json ./
 COPY --parents ./packages/definitions/src ./
-# Workaround for pnpm/pnpm#5268: pnpm fetch crashes when patchedDependencies
-# are configured with nodeLinker: hoisted. The applyPatchToDir function tries
-# to chdir into node_modules/<pkg> which doesn't exist during fetch (only the
-# content-addressable store is populated). By temporarily switching to the
-# isolated linker, patches apply inside the virtual store (node_modules/.pnpm/...)
-# which IS created by pnpm fetch. The original hoisted linker is restored
-# before the install step so the final node_modules layout stays flat.
+# Use pnpm's isolated linker throughout the image build. Fetch needs it for
+# patched dependencies, and install needs it so each esbuild version resolves
+# the matching platform binary during its postinstall script.
 RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
     pnpm config set store-dir /pnpm/store && \
     sed -i 's/nodeLinker: hoisted/nodeLinker: isolated/' pnpm-workspace.yaml && \
-    pnpm fetch --ignore-scripts && \
-    sed -i 's/nodeLinker: isolated/nodeLinker: hoisted/' pnpm-workspace.yaml
+    pnpm fetch --ignore-scripts
 
 # Install only from the fetched, committed lockfile so local and Docker builds
-# resolve the same dependency graph. Serial lifecycle builds avoid esbuild's
-# atomic binary replacement racing across the hoisted workspace (pnpm/pnpm#8200).
+# resolve the same dependency graph.
 RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
     npm_config_nodedir=/usr/local pnpm install --recursive --offline --frozen-lockfile --child-concurrency=1
 
 COPY . .
+RUN sed -i 's/nodeLinker: hoisted/nodeLinker: isolated/' pnpm-workspace.yaml
 
 ARG SKIP_ENV_VALIDATION='true'
 ARG CI='true'
@@ -80,7 +75,7 @@ COPY --from=builder /app/apps/nextjs/next.config.ts .
 COPY --from=builder /app/apps/nextjs/package.json .
 COPY --from=builder /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
 
-COPY --from=builder /app/node_modules/better-sqlite3/build/Release/better_sqlite3.node /app/build/better_sqlite3.node
+COPY --from=builder /app/apps/nextjs/node_modules/better-sqlite3/build/Release/better_sqlite3.node /app/build/better_sqlite3.node
 
 COPY --from=builder /app/packages/db/migrations ./db/migrations
 
