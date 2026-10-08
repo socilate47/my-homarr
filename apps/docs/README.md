@@ -1,105 +1,49 @@
-# Homarr Documentation (`@homarr/docs`)
+# My Homarr documentation
 
-The official [homarr.dev](https://homarr.dev) documentation site, built with [Docusaurus 3](https://docusaurus.io/) and living inside the Homarr monorepo.
+The personal field guide for [socilate47/my-homarr](https://github.com/socilate47/my-homarr), built with Docusaurus in this monorepo.
 
-## Why it's in the monorepo
+The homepage, branding and My Homarr guides describe this fork. General integration/widget references retain their upstream Homarr origins. Original license files and attribution remain in the project.
 
-Having documentation alongside the application code enables:
+## Preview
 
-- **Two-way linking** — the docs app imports from `@homarr/definitions` for type-safe integration/widget metadata, and the main app references doc paths via generated sitemap types
-- **Atomic PRs** — code changes and their documentation updates ship in the same pull request
-- **Shared tooling** — same Node version, pnpm catalog, oxlint/oxfmt, CI pipeline
-- **Build-time validation** — Docusaurus strict mode catches broken links and references at build time
-
-## Development
-
-From the **monorepo root**:
+From the repository root:
 
 ```bash
-# Start the docs dev server (port 3003)
 pnpm dev:docs
-
-# Or from within this directory
-pnpm dev
 ```
 
-## Build
+Default address: `http://localhost:3003/my-homarr/`.
+
+## Check and build
 
 ```bash
-# Build docs only
-pnpm turbo build --filter=@homarr/docs
-
-# Build everything (docs + main app + tasks + websocket)
-pnpm build
+pnpm exec turbo typecheck --filter=@homarr/docs
+pnpm exec turbo build --filter=@homarr/docs
 ```
 
-## Lint & Format
+The My Homarr documentation workflow runs these checks after documentation changes. It uploads the static build as an artifact; it does not publish the site automatically.
 
-Uses oxlint and oxfmt (same as the rest of the monorepo):
+## Site settings
 
-```bash
-pnpm lint        # oxlint
-pnpm format      # oxfmt (check)
-pnpm format -- --write  # oxfmt (fix)
-```
+| Variable | Purpose | Default |
+| --- | --- | --- |
+| `DOCS_SITE_URL` | Production site origin | `https://socilate47.github.io` |
+| `DOCS_BASE_URL` | Path where the docs are served | `/my-homarr/` |
+| `DOCS_ALGOLIA_APP_ID` | Your Algolia application | Unset |
+| `DOCS_ALGOLIA_SEARCH_KEY` | Your public search-only key | Unset |
+| `DOCS_ALGOLIA_INDEX_NAME` | Your documentation index | Unset |
 
-## Typecheck
+Search appears only when all three Algolia settings are present. The site does not reuse upstream Homarr’s search index, analytics project or assistant widget.
 
-```bash
-pnpm typecheck
-```
+## Content
 
-## Content Structure
+- `docs/my-homarr/` — the personal start, setup and dashboard guides.
+- `docs/advanced/discovery.mdx` — the full discovery and guest-agent reference.
+- `docs/management/`, `docs/integrations/`, `docs/widgets/` — shared technical references.
+- `src/pages/` — the My Homarr homepage and project/about page.
+- `src/css/custom.css` — shared documentation colors and typography.
+- `static/img/my-homarr-mark.svg` — this fork’s documentation mark.
 
-```
-docs/
-├── getting-started/    # Installation guides, glossary, prerequisites
-├── management/         # Boards, apps, users, integrations, settings, tasks, API
-├── integrations/       # 56 integration guides (one folder each)
-├── widgets/            # 43 widget guides (one folder each)
-├── advanced/           # SSO, env vars, proxy, styling, CLI, development
-└── community/          # FAQ, donate, license, translations, get-in-touch
-```
+Edit links point to this repository’s `homarr-discovery` branch. New content is checked for broken links and missing feature references during the docs build.
 
-Each integration/widget doc follows a consistent pattern:
-
-- `index.ts` — typed metadata (`IntegrationDefinition` / `WidgetDefinition`)
-- `index.mdx` — content using shared React components (`IntegrationHeader`, `WidgetHeader`, etc.)
-
-## Importing from homarr packages
-
-The docs app has `@homarr/definitions` as a workspace dependency. You can import integration kinds, widget kinds, and other definitions directly:
-
-```typescript
-import { IntegrationKind } from '@homarr/definitions';
-```
-
-This enables type-safe references to homarr domain concepts within documentation code.
-
-## Search (Algolia DocSearch)
-
-Search uses the `Docusaurus` Algolia index (crawler `cd77a285-2756-4557-bf21-ee703748df15`). A separate `markdown` index is built for LLM markdown indexing.
-
-Crawler reference config: [`docsearch.config.js`](docsearch.config.js).
-
-**Verify search health:**
-
-```bash
-pnpm verify:search
-```
-
-## Tech Stack
-
-| Layer | Technology |
-|---|---|
-| Site generator | Docusaurus 3 (`@docusaurus/preset-classic`) |
-| Styling | Tailwind CSS 3 + Docusaurus Infima |
-| Icons | `@tabler/icons-react` |
-| Diagrams | Mermaid (`@docusaurus/theme-mermaid`) |
-| Search | Algolia DocSearch |
-| Analytics | PostHog |
-| Charts | @nivo/line |
-
-## Contributing
-
-When making changes to the homarr codebase that affect user-facing behavior, **always update the corresponding documentation in this app**. See `.cursor/rules/documentation-sync.mdc` for the complete mapping of code changes to doc locations.
+For optional search, adapt `docsearch.config.js` to your site and index. With your three search settings configured, `pnpm --filter @homarr/docs verify:search` checks Proxmox, discovery and dashboard queries against that index. It skips requests when search is unconfigured.

@@ -1,41 +1,48 @@
-/**
- * CSS files with the .module.css suffix will be treated as CSS modules
- * and scoped locally.
-*/
-
-section {
-  margin-bottom: 2rem;
-}
-
-.heroWave {
-  width: 100%;
-  height: 125px;
-}
-
-.hero h2 {
-  font-size: 2rem;
-}
-
-.hero p {
-  font-weight: 500;
-}
-
-.heroImage {
-  display: block;
-  margin-left: auto;
-  border-radius: 6px;
-  max-width: min(100%, 500px);
-}
-
-
-.heroBanner {
-  padding: 4rem;
-  position: relative;
-  overflow: hidden;
-}
-
-@media screen and (max-width: 996px) {
-  .heroBanner {
-    padding: 2rem;
-  }
-}
+.home { max-width: 1160px; margin: 0 auto; padding: 0 28px 72px; }
+.hero { display: grid; grid-template-columns: 1.15fr 1fr; gap: 64px; align-items: center; padding: 84px 0 72px; }
+.eyebrow { font-family: var(--ifm-font-family-monospace); font-size: 11px; letter-spacing: .12em; font-weight: 600; color: var(--ifm-color-primary); margin: 0 0 18px; }
+.heroCopy h1 { font-size: clamp(2.4rem, 4.5vw, 4.15rem); line-height: 1.1; letter-spacing: -.045em; margin-bottom: 24px; }
+.lead { max-width: 500px; font-size: 18px; line-height: 1.75; color: var(--my-homarr-muted); margin-bottom: 28px; }
+.actions { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+.primaryLink, .secondaryLink { display: inline-flex; align-items: center; gap: 14px; font-size: 14px; font-weight: 600; padding: 13px 18px; border-radius: 9px; }
+.primaryLink { color: var(--my-homarr-button-text); background: var(--ifm-color-primary); border: 1px solid var(--ifm-color-primary); }
+.primaryLink:hover { color: var(--my-homarr-button-text); background: var(--ifm-color-primary-dark); text-decoration: none; }
+.secondaryLink { color: var(--ifm-color-content); border: 1px solid var(--my-homarr-border); }
+.secondaryLink:hover { color: var(--ifm-color-primary); text-decoration: none; border-color: var(--ifm-color-primary); }
+.note { font-family: var(--ifm-font-family-monospace); font-size: 11px; line-height: 1.8; color: var(--my-homarr-muted); margin: 24px 0 0; }
+.labBoard { padding: 22px; border: 1px solid var(--my-homarr-border); background: var(--my-homarr-surface); border-radius: 18px; box-shadow: 0 18px 54px var(--my-homarr-shadow); }
+.boardHeader { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+.boardMark { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; color: #f5f8fc; background: #102c44; font-family: var(--ifm-font-family-monospace); font-weight: 700; }
+.boardHeader strong { display: block; font-size: 15px; }
+.boardHeader div span { display: block; font-size: 11px; color: var(--my-homarr-muted); }
+.boardLabel { margin-left: auto; font-family: var(--ifm-font-family-monospace); font-size: 9px; letter-spacing: .1em; color: var(--my-homarr-muted); }
+.resourceRow { display: flex; align-items: center; gap: 8px; padding: 12px 0; border-top: 1px solid var(--my-homarr-border); font-size: 12px; }
+.resourceRow code { margin-left: auto; padding: 0; background: transparent; font-size: 10px; color: var(--my-homarr-muted); }
+.resourceDot { width: 6px; height: 6px; border-radius: 50%; background: var(--my-homarr-orange); }
+.tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 10px; }
+.tile { min-width: 0; display: flex; flex-direction: column; align-items: flex-start; padding: 17px 11px; border: 1px solid var(--my-homarr-border); border-radius: 10px; background: var(--ifm-background-color); }
+.tileIcon { font-family: var(--ifm-font-family-monospace); color: var(--ifm-color-primary); font-size: 20px; margin-bottom: 15px; }
+.tile strong { font-size: 11px; overflow-wrap: anywhere; }
+.tile > span:not(.tileIcon) { font-size: 10px; color: var(--my-homarr-muted); margin: 3px 0 12px; }
+.tile code { font-size: 10px; color: var(--my-homarr-orange); padding: 0; background: transparent; }
+.boardFooter { display: flex; justify-content: space-between; margin-top: 18px; font-size: 10px; color: var(--my-homarr-muted); }
+.guides { border-top: 1px solid var(--my-homarr-border); padding-top: 48px; }
+.sectionHeader h2 { font-size: 30px; letter-spacing: -.025em; margin-bottom: 12px; }
+.sectionHeader > p:last-child { color: var(--my-homarr-muted); font-size: 15px; max-width: 590px; }
+.guideGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; margin-top: 30px; }
+.guide { display: flex; flex-direction: column; align-items: flex-start; padding: 26px; border: 1px solid var(--my-homarr-border); border-radius: 13px; color: var(--ifm-color-content); background: var(--my-homarr-surface); }
+.guide:hover { color: var(--ifm-color-content); border-color: var(--ifm-color-primary); text-decoration: none; }
+.guideLabel { font-family: var(--ifm-font-family-monospace); color: var(--my-homarr-orange); font-size: 10px; letter-spacing: .1em; }
+.guide h3 { font-size: 19px; line-height: 1.4; margin: 17px 0 12px; }
+.guide p { font-size: 14px; line-height: 1.7; color: var(--my-homarr-muted); }
+.guideAction { margin-top: auto; padding-top: 14px; font-size: 12px; color: var(--ifm-color-primary); font-weight: 600; }
+.guideAction span { margin-left: 10px; }
+.projectNote { display: grid; grid-template-columns: 1fr 1.15fr; gap: 64px; margin-top: 64px; padding-top: 34px; border-top: 1px solid var(--my-homarr-border); }
+.projectNote h2 { font-size: 23px; letter-spacing: -.02em; }
+.projectNote p { color: var(--my-homarr-muted); font-size: 14px; line-height: 1.8; }
+.projectNote .eyebrow { color: var(--ifm-color-primary); font-size: 11px; }
+.projectNote a { font-size: 13px; font-weight: 600; }
+.home a:focus-visible { outline: 3px solid var(--my-homarr-orange); outline-offset: 4px; }
+@media (max-width: 960px) { .hero { gap: 32px; padding-top: 56px; } .guide { padding: 20px; } }
+@media (max-width: 760px) { .home { padding: 0 20px 48px; } .hero { grid-template-columns: 1fr; padding: 42px 0; gap: 38px; } .heroCopy h1 { font-size: 3rem; } .lead { font-size: 16px; } .guideGrid { grid-template-columns: 1fr; gap: 14px; } .projectNote { grid-template-columns: 1fr; gap: 12px; margin-top: 42px; } .sectionHeader h2 { font-size: 25px; } }
+@media (max-width: 380px) { .heroCopy h1 { font-size: 2.4rem; } .labBoard { padding: 16px; } .tiles { gap: 6px; } .tile { padding: 14px 8px; } .boardLabel { display: none; } }

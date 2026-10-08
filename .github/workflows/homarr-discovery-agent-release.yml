@@ -11,12 +11,13 @@ permissions:
 
 jobs:
   release:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v6
         with:
           go-version: "1.23"
+          cache: false
       - name: Build binaries
         working-directory: tools/homarr-discovery-agent
         run: |
@@ -26,7 +27,7 @@ jobs:
           GOOS=linux GOARCH=amd64 go build -trimpath -ldflags="-s -w" -o dist/homarr-discovery-agent-linux-amd64 .
           GOOS=linux GOARCH=arm64 go build -trimpath -ldflags="-s -w" -o dist/homarr-discovery-agent-linux-arm64 .
       - name: Upload binaries
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: homarr-discovery-agent
           path: tools/homarr-discovery-agent/dist/

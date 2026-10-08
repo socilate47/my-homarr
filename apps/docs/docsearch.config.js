@@ -1,29 +1,28 @@
-// Algolia DocSearch crawler for homarr.dev
-// Crawler ID: cd77a285-2756-4557-bf21-ee703748df15
-// Paste this in the Algolia crawler editor.
+// Optional Algolia crawler template for My Homarr.
+// Replace the application/admin key placeholders and adjust the site URL before use.
 
 new Crawler({
-  appId: "N69WSPZTID",
+  appId: "YOUR_ALGOLIA_APP_ID",
   apiKey: "YOUR_CRAWLER_ADMIN_API_KEY",
   indexPrefix: "",
   rateLimit: 32,
   maxDepth: 4,
-  startUrls: ["https://homarr.dev/"],
-  sitemaps: ["https://homarr.dev/sitemap.xml"],
+  startUrls: ["https://socilate47.github.io/my-homarr/"],
+  sitemaps: ["https://socilate47.github.io/my-homarr/sitemap.xml"],
   ignoreCanonicalTo: true,
-  discoveryPatterns: ["https://homarr.dev/**"],
+  discoveryPatterns: ["https://socilate47.github.io/my-homarr/**"],
   exclusionPatterns: [
-    "https://homarr.dev/docs/tags/**",
-    "https://homarr.dev/blog/tags/**",
-    "https://homarr.dev/blog/authors/**",
-    "https://homarr.dev/blog/archive/**",
-    "https://homarr.dev/search/**",
-    "https://homarr.dev/docs/category/**",
+    "https://socilate47.github.io/my-homarr/docs/tags/**",
+    "https://socilate47.github.io/my-homarr/blog/tags/**",
+    "https://socilate47.github.io/my-homarr/blog/authors/**",
+    "https://socilate47.github.io/my-homarr/blog/archive/**",
+    "https://socilate47.github.io/my-homarr/search/**",
+    "https://socilate47.github.io/my-homarr/docs/category/**",
   ],
   actions: [
     {
-      indexName: "Docusaurus",
-      pathsToMatch: ["https://homarr.dev/**"],
+      indexName: "my-homarr",
+      pathsToMatch: ["https://socilate47.github.io/my-homarr/**"],
       recordExtractor: ({ $, helpers }) => {
         const lvl0 =
           $(".menu__link.menu__link--sublist.menu__link--active, .navbar__item.navbar__link--active").last().text() ||
@@ -50,8 +49,8 @@ new Crawler({
       },
     },
     {
-      indexName: "markdown",
-      pathsToMatch: ["https://homarr.dev/**"],
+      indexName: "my-homarr-markdown",
+      pathsToMatch: ["https://socilate47.github.io/my-homarr/**"],
       recordExtractor: ({ $, url, helpers }) => {
         const text = helpers.markdown("article > *:not(nav):not(header):not(.breadcrumb)");
 

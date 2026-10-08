@@ -1,0 +1,38 @@
+name: Check My Homarr documentation
+
+on:
+  push:
+    branches: [homarr-discovery]
+    paths:
+      - 'apps/docs/**'
+      - 'packages/definitions/**'
+      - 'README.md'
+      - 'docs/README.md'
+      - 'DESIGN.md'
+      - '.github/workflows/my-homarr-docs.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  docs:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      CI: 'true'
+      DOCS_SITE_URL: https://socilate47.github.io
+      DOCS_BASE_URL: /my-homarr/
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./tooling/github/setup
+      - name: Check documentation types
+        run: pnpm exec turbo typecheck --filter=@homarr/docs
+      - name: Build personal documentation
+        run: pnpm exec turbo build --filter=@homarr/docs
+      - uses: actions/upload-artifact@v7
+        with:
+          name: my-homarr-documentation
+          path: apps/docs/build/
+          if-no-files-found: error
+          retention-days: 14
