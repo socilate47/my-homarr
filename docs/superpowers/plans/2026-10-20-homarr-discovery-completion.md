@@ -9,11 +9,11 @@
 ## Completion gates
 
 - [x] **1. Establish the build state.** Run `37761282489` passed `verify` and failed Docker `build` at `pnpm exec turbo typecheck`: TypeScript could not find the `node` type definition under the isolated pnpm layout.
-- [ ] **2. Fix reproducible blockers.** For each failure, add or update focused coverage where it proves behavior, make the smallest fix, and run the affected check. Keep the lockfile and package manifests consistent.
-- [ ] **3. Verify the full delivery path.** Run Go tests and vet, installer and deployment setup checks, affected TypeScript checks, targeted discovery/media tests, docs build where changed, and the production Docker build. Record exact results and unavailable checks in `docs/homarr-discovery-verification.md`.
+- [x] **2. Fix reproducible blockers.** Restored the proven hoisted Docker install after isolated dependency resolution failed. Cleared the inherited docs `baseUrl` for TypeScript 7. Runs `39507666690` and `39507666988` passed.
+- [x] **3. Verify the available delivery path.** Local Go tests/vet, installer and deployment checks passed. Image run `39507666690` passed affected TypeScript checks, targeted discovery/media tests and production Docker build. Docs run `39507666988` passed typecheck and site build. See `docs/homarr-discovery-verification.md` for commands and limits.
 - [x] **4. Publish the candidate.** Run `39505538054` passed verification and Docker build, publishing `ghcr.io/socilate47/my-homarr:discovery` at digest `sha256:6f47ed26367ff603009ca132df2be90efe4a59d9b0e35e88ff876f304780d3c4`.
 - [x] **5. Prepare the VM handoff.** `deployments/homelab-discovery/README.md` covers setup, health checks, Proxmox configuration, Linux guest-agent installation, tile behavior, and wallpaper controls. The user will run the live VM test.
 
 ## Definition of done
 
-The workflow and Docker build pass, automated checks cover guest reports, tile refresh and video wallpaper behavior, and the VM setup and validation instructions are complete. The verification record lists the commands and observed results. A live VM result is reported separately when access is available; it is not required to call the build deployment-ready.
+The workflow and Docker build pass, available automated checks cover discovery and media behavior, and the VM setup and validation instructions are complete. The verification record lists commands and observed results. The user will run the live VM and browser checks.
