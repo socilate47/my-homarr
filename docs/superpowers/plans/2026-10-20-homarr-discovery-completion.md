@@ -4,7 +4,7 @@
 
 **Source of requirements:** [Homelab dashboard design](../specs/2026-10-05-homelab-dashboard-design.md) and [implementation plan](2026-10-05-homelab-dashboard.md).
 
-**Current state:** The implementation is on `homarr-discovery`. A root `@types/node` dependency change is uncommitted. Node/pnpm and Docker daemon access are unavailable locally. The connected GitHub plugin can read workflow runs even though the shell cannot reach GitHub.
+**Current state:** The implementation is on `homarr-discovery`. The connected GitHub plugin can read workflow runs and publish commits even though the shell cannot reach GitHub. Node/pnpm and Docker daemon access are unavailable locally. Run `39504567200` exposed unresolved workspace imports under the isolated linker; the Dockerfile and root dependency changes have been restored to the prior hoisted install used by successful run `37759038282`.
 
 ## Completion gates
 
