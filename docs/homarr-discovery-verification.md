@@ -1,5 +1,18 @@
 # Homelab discovery delivery status
 
+## Current verification (2026-10-20)
+
+- `go test ./... && go vet ./...` in `tools/homarr-discovery-agent`: passed (Go reported cached test results).
+- `bash -n deployments/homelab-discovery/setup.sh` and `python3 deployments/homelab-discovery/test-setup.py`: passed, 4 tests.
+- `bash -n tools/homarr-discovery-agent/install-agent.sh` and `git diff --check`: passed.
+- `SECRET_ENCRYPTION_KEY=0000000000000000000000000000000000000000000000000000000000000000 docker compose -f deployments/homelab-discovery/compose.yml config --quiet`: passed.
+- `gh run list --repo socilate47/my-homarr --branch homarr-discovery --limit 5`: failed to connect to `api.github.com` in this workspace. The connected GitHub plugin did retrieve the current run state.
+- Latest image run [37761282489](https://github.com/socilate47/my-homarr/actions/runs/37761282489), for `e94c15bfc`: `verify` passed all steps, including affected TypeScript checks and targeted regression tests; `build` failed at Dockerfile line 47. In the isolated pnpm install, `@homarr/server-settings`, `@homarr/validation`, and `@homarr/icons` reported `TS2688: Cannot find type definition file for 'node'`. The root manifest did not declare `@types/node`; the pending manifest and lockfile change adds it. A new image run is required to prove that change fixes the Docker build.
+- `docker version`: denied access to `/var/run/docker.sock`; no local image build or runtime check was possible.
+- `node` and `pnpm` are absent from `PATH`; affected TypeScript checks and Vitest cannot run locally.
+
+The completion gates and remaining validation are tracked in `docs/superpowers/plans/2026-10-20-homarr-discovery-completion.md`.
+
 ## Implemented locally
 
 - Automatic Proxmox VM/LXC inventory polling, with agent-needed and stale status.
