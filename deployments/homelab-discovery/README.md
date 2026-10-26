@@ -1,6 +1,6 @@
 # Run your Homarr build
 
-This deployment builds the checked-out Homarr source, stores its data in a persistent Docker volume, and includes Linux guest-agent downloads. It does not require a GitHub image or agent release.
+This deployment runs the verified `ghcr.io/socilate47/my-homarr` image (pinned by digest in `compose.yml`), stores its data in a persistent Docker volume, and includes Linux guest-agent downloads. It can also build the checked-out source instead.
 
 ## Start on your Homarr VM
 
@@ -10,7 +10,13 @@ Install [Docker Engine](https://docs.docker.com/engine/install/) with the Compos
 bash deployments/homelab-discovery/setup.sh
 ```
 
-The script creates a restricted `.env` file with a random encryption key, builds the image, and waits for Homarr to become healthy. Open `http://YOUR-VM-ADDRESS:7575` and finish onboarding.
+The package is private, so log Docker in to GitHub Container Registry once first (needs a token with `read:packages`, for example `gh auth refresh -h github.com -s read:packages`):
+
+```bash
+gh auth token | docker login ghcr.io -u socilate47 --password-stdin
+```
+
+The script creates a restricted `.env` file with a random encryption key, pulls the image, and waits for Homarr to become healthy. Open `http://YOUR-VM-ADDRESS:7575` and finish onboarding.
 
 To change the port or timezone before starting:
 
@@ -40,11 +46,9 @@ Windows VMs and appliances still appear in the Proxmox inventory. This version h
 
 ## Updates and diagnostics
 
-Run the setup script again after changing the source; it preserves `.env` and the data volume. To build without starting:
+To deploy a newer image, set `HOMARR_IMAGE` in `.env` (or update the digest in `compose.yml`) and run the setup script again; it preserves `.env` and the data volume.
 
-```bash
-bash deployments/homelab-discovery/setup.sh --build-only
-```
+To build the checked-out source instead of pulling, run `setup.sh --build` (build and start) or `setup.sh --build-only`. The build needs several GB of memory and disk; a 2 GB VM is not enough.
 
 From `deployments/homelab-discovery`, inspect the deployment:
 

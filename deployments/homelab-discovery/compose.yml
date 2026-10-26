@@ -1,9 +1,7 @@
 services:
   homarr:
-    build:
-      context: ../..
-      dockerfile: Dockerfile
-    image: homarr-discovery:local
+    # Verified CI image (run 39507666690, commit b0f577580). Override HOMARR_IMAGE in .env to use another build.
+    image: "${HOMARR_IMAGE:-ghcr.io/socilate47/my-homarr@sha256:94dee1b19b8c87eb6d4edb4b97b2e876fff9e12f924d122a11adfd864a77e156}"
     restart: unless-stopped
     init: true
     ports:

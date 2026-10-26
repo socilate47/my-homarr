@@ -78,7 +78,9 @@ class SetupTests(unittest.TestCase):
         result = self.run_setup("--start", environment)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual((self.directory / ".env").read_bytes(), original)
-        self.assertIn("up --wait --wait-timeout 300", commands.read_text())
+        self.assertIn("pull", commands.read_text())
+        self.assertNotIn(" build", commands.read_text())
+        self.assertIn("up --no-build --wait --wait-timeout 300", commands.read_text())
 
 
 if __name__ == "__main__":

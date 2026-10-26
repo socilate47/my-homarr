@@ -2,8 +2,8 @@
 set -euo pipefail
 
 task_mode="${1:---start}"
-if [[ "$#" -gt 1 || ( "$task_mode" != "--start" && "$task_mode" != "--build-only" && "$task_mode" != "--init-only" ) ]]; then
-  printf '%s\n' 'Usage: setup.sh [--start|--build-only|--init-only]' >&2
+if [[ "$#" -gt 1 || ( "$task_mode" != "--start" && "$task_mode" != "--build" && "$task_mode" != "--build-only" && "$task_mode" != "--init-only" ) ]]; then
+  printf '%s\n' 'Usage: setup.sh [--start|--build|--build-only|--init-only]' >&2
   exit 2
 fi
 
@@ -51,12 +51,19 @@ if ! docker compose version >/dev/null 2>&1; then
 fi
 
 task_compose=(docker compose --project-name my-homarr --env-file "$task_setup_dir/.env" -f "$task_setup_dir/compose.yml")
-"${task_compose[@]}" config --quiet
-"${task_compose[@]}" build
-if [[ "$task_mode" == "--build-only" ]]; then
-  printf '%s\n' 'Homarr image built with agent downloads included.'
-  exit 0
+if [[ "$task_mode" == "--start" ]]; then
+  # Pull the published image; building the monorepo needs more memory and disk than a small VM has.
+  "${task_compose[@]}" config --quiet
+  "${task_compose[@]}" pull
+else
+  task_compose+=(-f "$task_setup_dir/compose.build.yml")
+  "${task_compose[@]}" config --quiet
+  "${task_compose[@]}" build
+  if [[ "$task_mode" == "--build-only" ]]; then
+    printf '%s\n' 'Homarr image built with agent downloads included.'
+    exit 0
+  fi
 fi
-"${task_compose[@]}" up --wait --wait-timeout 300
+"${task_compose[@]}" up --no-build --wait --wait-timeout 300
 printf '%s\n' 'Homarr started. Open http://YOUR-VM-ADDRESS:7575 (or the port configured in .env).' \
   'Finish onboarding, then select Proxmox and your dashboard in Manage → Discovery.'

@@ -1,0 +1,8 @@
+# Builds the checked-out source instead of pulling the published image (setup.sh --build).
+# The build needs several GB of memory and disk.
+services:
+  homarr:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    image: homarr-discovery:local
