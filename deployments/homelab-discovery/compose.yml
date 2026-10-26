@@ -1,7 +1,7 @@
 services:
   homarr:
-    # Verified CI image (run 40414536701, commit b6670cd95). Override HOMARR_IMAGE in .env to use another build.
-    image: "${HOMARR_IMAGE:-ghcr.io/socilate47/my-homarr@sha256:df296e0c5b6f4882da7f0f7a33fe1c3e2390640c98564e9f3910ad377ec33fe4}"
+    # Verified CI image (run 40416426466, commit 0c0f9b76f). Override HOMARR_IMAGE in .env to use another build.
+    image: "${HOMARR_IMAGE:-ghcr.io/socilate47/my-homarr@sha256:ce6d7fb398c01b9eb7e6c308906e192e663891abc3f303da693cb91a4c477528}"
     restart: unless-stopped
     init: true
     ports:
