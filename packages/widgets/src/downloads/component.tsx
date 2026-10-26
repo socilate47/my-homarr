@@ -51,6 +51,7 @@ import { getIconUrl, getIntegrationKindsByCategory } from "@homarr/definitions";
 import type { ExtendedClientStatus, ExtendedDownloadClientItem } from "@homarr/integrations";
 import { showErrorNotification } from "@homarr/notifications";
 import { useScopedI18n } from "@homarr/translation/client";
+import { copyToClipboardAsync } from "@homarr/ui";
 
 import type { WidgetComponentProps } from "../definition";
 import { HomarrDataTable } from "../common/homarr-data-table";
@@ -1070,7 +1071,7 @@ function RowContextMenu({ state, onClose, t }: { state: ContextMenuState; onClos
             <Menu.Item
               leftSection={<IconInfoCircle size={14} />}
               onClick={() => {
-                void navigator.clipboard.writeText(item.name).catch(() => {});
+                void copyToClipboardAsync(item.name).catch(() => {});
                 onClose();
               }}
             >
@@ -1081,7 +1082,7 @@ function RowContextMenu({ state, onClose, t }: { state: ContextMenuState; onClos
               <Menu.Item
                 leftSection={<IconCopy size={14} />}
                 onClick={() => {
-                  void navigator.clipboard.writeText(item.id).catch(() => {});
+                  void copyToClipboardAsync(item.id).catch(() => {});
                   onClose();
                 }}
               >

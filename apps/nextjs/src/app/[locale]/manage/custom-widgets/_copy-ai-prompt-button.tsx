@@ -7,6 +7,7 @@ import { IconCopy, IconSparkles } from "@tabler/icons-react";
 import { clientApi } from "@homarr/api/client";
 import { showErrorNotification, showSuccessNotification } from "@homarr/notifications";
 import { useScopedI18n } from "@homarr/translation/client";
+import { copyToClipboardAsync } from "@homarr/ui";
 
 const PROMPT_HEADER = `You are helping configure a Homarr custom widget. Homarr is a self-hosted dashboard that can display data from any API endpoint as a widget.
 
@@ -302,7 +303,7 @@ export const CopyAiPromptButton = ({ rawResponse, currentConfig }: CopyAiPromptB
     if (!schema) return;
     const prompt = buildAiPrompt(schema, rawResponse, currentConfig);
     try {
-      await navigator.clipboard.writeText(prompt);
+      await copyToClipboardAsync(prompt);
       close();
       showSuccessNotification({ title: t("action.copyAiPrompt"), message: t("notification.aiPromptCopied") });
     } catch {

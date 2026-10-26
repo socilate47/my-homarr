@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ActionIcon, Alert, Anchor, Button, Card, CopyButton, Group, SimpleGrid, Stack, Text } from "@mantine/core";
+import { ActionIcon, Alert, Anchor, Button, Card, Group, SimpleGrid, Stack, Text } from "@mantine/core";
 import { IconAlertTriangle, IconCheck, IconCopy, IconExclamationCircle, IconRepeat } from "@tabler/icons-react";
 
 import { clientApi } from "@homarr/api/client";
@@ -10,6 +10,7 @@ import { createModal, useConfirmModal, useModalAction } from "@homarr/modals";
 import { AddCertificateModal } from "@homarr/modals-collection";
 import { showErrorNotification, showSuccessNotification } from "@homarr/notifications";
 import { useCurrentLocale, useI18n, useScopedI18n } from "@homarr/translation/client";
+import { CopyButton } from "@homarr/ui";
 
 import type { MappedCertificate, MappedTestConnectionCertificateError } from "./types";
 

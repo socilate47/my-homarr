@@ -10,7 +10,6 @@ import {
   Badge,
   Button,
   Code,
-  CopyButton,
   Group,
   List,
   ListItem,
@@ -38,6 +37,7 @@ import { clientApi } from "@homarr/api/client";
 import { revalidatePathActionAsync } from "@homarr/common/client";
 import { useModalAction } from "@homarr/modals";
 import { useScopedI18n } from "@homarr/translation/client";
+import { CopyButton } from "@homarr/ui";
 
 import { CopyApiKeyModal } from "./copy-api-key-modal";
 import type { McpToolGroup } from "./api-page-tabs";
