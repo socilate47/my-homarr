@@ -114,7 +114,6 @@ NoNewPrivileges=true
 ProtectSystem=strict
 ProtectHome=true
 PrivateTmp=true
-ReadOnlyPaths=/proc/net/tcp
 
 [Install]
 WantedBy=multi-user.target
