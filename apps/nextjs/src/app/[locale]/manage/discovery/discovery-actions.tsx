@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Alert, Anchor, Badge, Button, Card, Code, CopyButton, Group, Select, SimpleGrid, Stack, Switch, Text, Title } from "@mantine/core";
+import { Alert, Anchor, Badge, Button, Card, Code, Group, Select, SimpleGrid, Stack, Switch, Text, Title } from "@mantine/core";
 
 import type { RouterOutputs } from "@homarr/api";
 import { clientApi } from "@homarr/api/client";
@@ -16,6 +16,26 @@ interface DiscoveryActionsProps {
 }
 const quote = (value: string) => `'${value.replaceAll("'", "'\\''")}'`;
 
+// navigator.clipboard only exists in secure contexts; Homarr is often opened over plain HTTP on a LAN address.
+const copyText = async (value: string) => {
+  if (window.isSecureContext && navigator.clipboard) {
+    await navigator.clipboard.writeText(value);
+    return true;
+  }
+  const textarea = document.createElement("textarea");
+  textarea.value = value;
+  textarea.setAttribute("readonly", "");
+  textarea.style.position = "fixed";
+  textarea.style.opacity = "0";
+  document.body.appendChild(textarea);
+  textarea.select();
+  try {
+    return document.execCommand("copy");
+  } finally {
+    textarea.remove();
+  }
+};
+
 export function DiscoveryActions({ initialSettings, integrations, boards }: DiscoveryActionsProps) {
   const t = useScopedI18n("discovery");
   const locale = useCurrentLocale();
@@ -27,6 +47,7 @@ export function DiscoveryActions({ initialSettings, integrations, boards }: Disc
   const [boardId, setBoardId] = useState(initialSettings.targetBoardId ?? boards.find((board) => board.isHome)?.id ?? null);
   const [confirmRotate, setConfirmRotate] = useState(false);
   const [installId, setInstallId] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const reveal = clientApi.discovery.getAgentToken.useMutation();
   const refresh = async () => { await utils.discovery.getSettings.invalidate(); };
   const save = clientApi.discovery.saveSettings.useMutation({ onSuccess: async () => {
@@ -81,7 +102,11 @@ export function DiscoveryActions({ initialSettings, integrations, boards }: Disc
           <Text size="sm" c="dimmed">{resource.id} · {resource.node} · {resource.status}</Text>
           <Text size="sm" style={{ overflowWrap: "anywhere" }}>{resource.ipAddresses.join(", ") || t("noAddress")}</Text>
           <Button variant="light" disabled={!settings.enabled || !settings.hasAgentToken} onClick={() => { setInstallId(resource.id); if (!reveal.data) reveal.mutate(); }}>{t("install")}</Button>
-          {command && <Stack gap="xs"><Text size="sm">{t("installHelp")}</Text><Code block style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{command}</Code><CopyButton value={command}>{({ copied, copy }) => <Button variant="default" onClick={copy}>{copied ? t("copied") : t("copy")}</Button>}</CopyButton></Stack>}
+          {command && <Stack gap="xs"><Text size="sm">{t("installHelp")}</Text><Code block style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{command}</Code><Button variant="default" onClick={() => void copyText(command).then((copied) => {
+            if (!copied) return;
+            setCopiedId(resource.id);
+            setTimeout(() => setCopiedId((current) => (current === resource.id ? null : current)), 2000);
+          })}>{copiedId === resource.id ? t("copied") : t("copy")}</Button></Stack>}
           {resource.services.map((service) => {
             const mapping = settings.mappings.find((row) => row.boardId === settings.targetBoardId && row.resourceId === resource.id && row.serviceId === service.id);
             return <Group key={service.id} justify="space-between" align="start">
