@@ -95,3 +95,16 @@ func TestConfiguredNativeWebServicesUseDetectedAddresses(t *testing.T) {
 		t.Fatalf("wrong admin console: %#v", services[1])
 	}
 }
+
+func TestVirtualInterfacesAreSkipped(t *testing.T) {
+	for _, name := range []string{"docker0", "br-1a2b", "veth9f", "podman0", "podman1", "cni-podman0", "virbr0", "lxcbr0", "incusbr0"} {
+		if !virtualInterface(name) {
+			t.Errorf("%s should be treated as a virtual interface", name)
+		}
+	}
+	for _, name := range []string{"eth0", "ens18", "enp1s0", "wlan0", "bond0", "vmbr0"} {
+		if virtualInterface(name) {
+			t.Errorf("%s should be treated as a LAN interface", name)
+		}
+	}
+}

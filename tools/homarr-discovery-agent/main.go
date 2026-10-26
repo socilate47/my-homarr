@@ -124,11 +124,7 @@ func localIPs() []string {
 	result := make([]string, 0)
 	interfaces, _ := net.Interfaces()
 	for _, iface := range interfaces {
-		name := strings.ToLower(iface.Name)
-		if iface.Flags&net.FlagUp == 0 || iface.Flags&net.FlagLoopback != 0 ||
-			strings.HasPrefix(name, "docker") || strings.HasPrefix(name, "br-") ||
-			strings.HasPrefix(name, "veth") || strings.HasPrefix(name, "cni") ||
-			strings.HasPrefix(name, "flannel") || strings.HasPrefix(name, "virbr") {
+		if iface.Flags&net.FlagUp == 0 || iface.Flags&net.FlagLoopback != 0 || virtualInterface(iface.Name) {
 			continue
 		}
 		addresses, _ := iface.Addrs()
@@ -141,6 +137,21 @@ func localIPs() []string {
 	}
 	sort.Strings(result)
 	return result
+}
+
+// Container and VM bridges carry host-internal addresses that other machines cannot reach.
+var virtualInterfacePrefixes = []string{
+	"docker", "br-", "veth", "cni", "flannel", "virbr", "podman", "lxcbr", "lxdbr", "incusbr", "cilium", "kube-",
+}
+
+func virtualInterface(name string) bool {
+	name = strings.ToLower(name)
+	for _, prefix := range virtualInterfacePrefixes {
+		if strings.HasPrefix(name, prefix) {
+			return true
+		}
+	}
+	return false
 }
 
 func usableIP(value string) bool {
